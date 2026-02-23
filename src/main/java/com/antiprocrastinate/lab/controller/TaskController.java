@@ -34,4 +34,11 @@ public class TaskController {
         .toList();
   }
 
+  @GetMapping
+  public List<TaskDto> getAllTasks() {
+    return taskService.getAllTasks().stream()
+        .map(TaskMapper::toDto)
+        .toList();
+  }
+
 }

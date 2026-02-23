@@ -11,10 +11,9 @@ public class TaskService {
   private final List<Task> storage = new ArrayList<>();
 
   public TaskService() {
-    // Наполняем данными прямо при старте
     storage.add(createTask(1L, "Сдать лабу", "Дописать отчёт", 100, "ACTIVE"));
-    storage.add(createTask(2L, "Покормить кота", "Кот в приоритете", 10, "ANGRY"));
-    storage.add(createTask(3L, "Не спать", "Бэкенд сам себя не напишет", 50, "ACTIVE"));
+    storage.add(createTask(2L, "Покормить кошку", "Влажный корм, поменять воду", 10, "ANGRY"));
+    storage.add(createTask(3L, "Не спать", "Отослать лабу до дедлайна", 50, "ACTIVE"));
   }
 
   private Task createTask(Long id, String title, String desc, Integer score, String status) {
