@@ -13,7 +13,7 @@ public class TaskService {
   public TaskService() {
     storage.add(createTask(1L, "Сдать лабу", "Дописать отчёт", 100, "ACTIVE"));
     storage.add(createTask(2L, "Покормить кошку", "Влажный корм, поменять воду", 10, "ANGRY"));
-    storage.add(createTask(3L, "Не спать", "Отослать лабу до дедлайна", 50, "ACTIVE"));
+    storage.add(createTask(3L, "Не спать", "Скинуть лабу до дедлайна", 50, "ACTIVE"));
   }
 
   private Task createTask(Long id, String title, String desc, Integer score, String status) {
