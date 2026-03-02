@@ -1,22 +1,42 @@
-Task API
-REST API для управления задачами агента-антипрокрастинатора.
+# Task API — Агент-антипрокрастинатор
 
-Стек
-Java 25, Spring Boot 3
+REST API для управления списком задач и контроля продуктивности. Приложение позволяет отслеживать фокус пользователя и автоматически изменять статусы задач в зависимости от прогресса.
 
-Maven, Checkstyle, SonarLint
+## Технологический стек
 
-Эндпоинты
-GET /api/tasks/{id} — получение по ID (@PathVariable)
+* **Язык программирования:** Java 25
+* **Фреймворк:** Spring Boot 3 (Spring Web, Spring Data JPA)
+* **Сборка проекта:** Maven
+* **Качество кода:** Checkstyle (Google Style), SonarLint
+* **База данных:** In-Memory Storage (ArrayList)
 
-GET /api/tasks/search?title=... — поиск по названию (@RequestParam)
+---
 
-Модель данных (JSON)
-JSON
+## Основные эндпоинты
+
+В приложении реализованы следующие методы для работы с задачами:
+
+| Метод | Эндпоинт | Описание | Тип параметра |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/api/tasks` | Получение всех задач | — |
+| **GET** | `/api/tasks/{id}` | Поиск конкретной задачи по ID | `@PathVariable` |
+| **GET** | `/api/tasks/search` | Поиск задач по части названия | `@RequestParam` |
+
+### Примеры запросов:
+* `GET http://localhost:8080/api/tasks/1`
+* `GET http://localhost:8080/api/tasks/search?title=лаба`
+
+---
+
+## Модель данных (JSON)
+
+Все ответы сервера приходят в формате JSON. Пример объекта `TaskDto`:
+
+```json
 {
   "id": 1,
-  "title": "String",
-  "description": "String",
-  "focusScore": 100,
+  "title": "Сдать вторую лабу",
+  "description": "Подготовить ответы на вопросы по теории и почистить код",
+  "focusScore": 85,
   "status": "ACTIVE"
 }
