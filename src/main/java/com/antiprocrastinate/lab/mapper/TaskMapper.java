@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 public class TaskMapper {
   public TaskDto toDto(Task task) {
     TaskDto dto = new TaskDto();
-    dto.setId(task.getId());
     dto.setTitle(task.getTitle());
     dto.setStatus(task.getStatus().name());
     dto.setFocusScore(task.getFocusScore());

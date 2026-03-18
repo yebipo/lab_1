@@ -8,14 +8,10 @@ import org.springframework.stereotype.Component;
 public class CategoryMapper {
   public CategoryDto toDto(Category category) {
     CategoryDto dto = new CategoryDto();
-    dto.setId(category.getId());
     dto.setName(category.getName());
     dto.setColor(category.getColor());
     dto.setDescription(category.getDescription());
     dto.setIconUrl(category.getIconUrl());
-    if (category.getUser() != null) {
-      dto.setUserId(category.getUser().getId());
-    }
     return dto;
   }
 }

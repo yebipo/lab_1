@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 public class SkillMapper {
   public SkillDto toDto(Skill skill) {
     SkillDto dto = new SkillDto();
-    dto.setId(skill.getId());
     dto.setName(skill.getName());
     dto.setIconUrl(skill.getIconUrl());
     Category category = skill.getCategory();
