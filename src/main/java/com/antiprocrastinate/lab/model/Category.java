@@ -1,17 +1,14 @@
 package com.antiprocrastinate.lab.model;
 
-import jakarta.persistence.Column;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,34 +16,27 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Entity
-@Table(name = "tasks")
+@Table(name = "categories")
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Task {
+public class Category {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @EqualsAndHashCode.Include
   private Long id;
 
-  private String title;
+  private String name;
+  private String color;
   private String description;
-  private Integer focusScore;
-
-  @Enumerated(EnumType.STRING)
-  @Column(columnDefinition = "task_status_type")
-  private TaskStatus status = TaskStatus.TODO;
+  private String iconUrl;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id")
   private User user;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "category_id")
-  private Category category;
-
-  @ManyToMany(fetch = FetchType.LAZY)
-  @JoinTable(name = "task_skills",
-      joinColumns = @JoinColumn(name = "task_id"),
-      inverseJoinColumns = @JoinColumn(name = "skill_id"))
+  @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
   private Set<Skill> skills = new HashSet<>();
+
+  @OneToMany(mappedBy = "category")
+  private Set<Task> tasks = new HashSet<>();
 }

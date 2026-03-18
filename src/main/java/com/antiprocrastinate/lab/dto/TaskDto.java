@@ -1,22 +1,14 @@
 package com.antiprocrastinate.lab.dto;
 
+import java.util.Set;
+import lombok.Data;
+
+@Data
 public class TaskDto {
+  private Long id;
   private String title;
   private String status;
-
-  public String getTitle() {
-    return title;
-  }
-
-  public void setTitle(String title) {
-    this.title = title;
-  }
-
-  public String getStatus() {
-    return status;
-  }
-
-  public void setStatus(String status) {
-    this.status = status;
-  }
+  private Integer focusScore;
+  private Long userId;
+  private Set<Long> skillIds;
 }
