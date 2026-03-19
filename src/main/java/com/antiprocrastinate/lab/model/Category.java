@@ -26,7 +26,6 @@ public class Category {
   private String color;
   private String description;
   private String iconUrl;
-
   @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
   private Set<Skill> skills = new HashSet<>();
 

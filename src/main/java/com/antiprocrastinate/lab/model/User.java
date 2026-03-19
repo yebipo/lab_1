@@ -24,17 +24,12 @@ public class User {
 
   private String username;
   private String email;
-  private Integer level = 1;
+  private Integer level;
   private String levelUrl;
   private Integer dailyGoalMinutes;
   private String avatarUrl;
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-  private Set<Skill> skills = new HashSet<>();
-
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
   private Set<Task> tasks = new HashSet<>();
 
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-  private Set<WorkLog> workLogs = new HashSet<>();
 }
