@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 public class WorkLogMapper {
   public WorkLogDto toDto(WorkLog log) {
     WorkLogDto dto = new WorkLogDto();
+    dto.setId(log.getId());
     dto.setDurationMinutes(log.getDurationMinutes());
     dto.setComment(log.getComment());
     dto.setInterruptionCount(log.getInterruptionCount());

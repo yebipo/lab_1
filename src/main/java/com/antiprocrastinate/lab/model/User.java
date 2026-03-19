@@ -30,7 +30,7 @@ public class User {
   private String avatarUrl;
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-  private Set<Category> categories = new HashSet<>();
+  private Set<Skill> skills = new HashSet<>();
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
   private Set<Task> tasks = new HashSet<>();
