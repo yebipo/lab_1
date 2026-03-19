@@ -30,6 +30,4 @@ public class Category {
   @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
   private Set<Skill> skills = new HashSet<>();
 
-  @OneToMany(mappedBy = "category")
-  private Set<Task> tasks = new HashSet<>();
 }

@@ -26,13 +26,10 @@ public class TaskMapper {
       dto.setUserId(task.getUser().getId());
     }
 
-    // Собираем ID категорий через метод getCategories(), который лезет в скиллы
-    // Теперь метод в Task.java используется, и IntelliJ не будет ругаться
     dto.setCategoryIds(task.getCategories().stream()
         .map(Category::getId)
         .collect(Collectors.toSet()));
 
-    // Собираем ID скиллов
     if (task.getSkills() != null) {
       dto.setSkillIds(task.getSkills().stream()
           .map(Skill::getId)
