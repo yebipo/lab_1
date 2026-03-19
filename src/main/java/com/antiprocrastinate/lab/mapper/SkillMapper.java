@@ -7,15 +7,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class SkillMapper {
   public SkillDto toDto(Skill skill) {
+    if (skill == null) {
+      return null;
+    }
     SkillDto dto = new SkillDto();
     dto.setId(skill.getId());
     dto.setName(skill.getName());
     dto.setIconUrl(skill.getIconUrl());
     if (skill.getCategory() != null) {
       dto.setCategoryId(skill.getCategory().getId());
-    }
-    if (skill.getUser() != null) {
-      dto.setUserId(skill.getUser().getId());
     }
     return dto;
   }

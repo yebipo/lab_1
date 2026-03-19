@@ -7,15 +7,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class WorkLogMapper {
   public WorkLogDto toDto(WorkLog log) {
+    if (log == null) {
+      return null;
+    }
     WorkLogDto dto = new WorkLogDto();
     dto.setId(log.getId());
     dto.setDurationMinutes(log.getDurationMinutes());
     dto.setComment(log.getComment());
     dto.setInterruptionCount(log.getInterruptionCount());
     dto.setCreatedAt(log.getCreatedAt());
-    if (log.getUser() != null) {
-      dto.setUserId(log.getUser().getId());
-    }
     if (log.getTask() != null) {
       dto.setTaskId(log.getTask().getId());
     }

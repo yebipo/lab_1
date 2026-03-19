@@ -10,6 +10,5 @@ public class WorkLogDto {
   private String comment;
   private Integer interruptionCount;
   private LocalDateTime createdAt;
-  private Long userId;
   private Long taskId;
 }

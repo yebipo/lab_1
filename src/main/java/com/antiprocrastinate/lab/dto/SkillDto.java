@@ -8,5 +8,4 @@ public class SkillDto {
   private String name;
   private String iconUrl;
   private Long categoryId;
-  private Long userId;
 }
