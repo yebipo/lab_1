@@ -15,12 +15,20 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "tasks")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Task {
   @Id
@@ -34,6 +42,8 @@ public class Task {
 
   @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "task_status_type")
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM) // Фикс для кастомного ENUM в PostgreSQL
+  @Builder.Default
   private TaskStatus status = TaskStatus.TODO;
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -44,5 +54,6 @@ public class Task {
   @JoinTable(name = "task_skills",
       joinColumns = @JoinColumn(name = "task_id"),
       inverseJoinColumns = @JoinColumn(name = "skill_id"))
+  @Builder.Default
   private Set<Skill> skills = new HashSet<>();
 }
