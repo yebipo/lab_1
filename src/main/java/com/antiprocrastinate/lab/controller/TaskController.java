@@ -6,6 +6,7 @@ import com.antiprocrastinate.lab.model.Task;
 import com.antiprocrastinate.lab.service.TaskService;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -50,20 +51,19 @@ public class TaskController {
 
   @PostMapping("/bulk-transactional")
   public ResponseEntity<String> createBulkTransactional(@RequestBody List<TaskDto> taskDtos) {
-    try {
-      List<Task> tasks = taskDtos.stream().map(taskMapper::toEntity).collect(Collectors.toList());
-      taskService.saveMultipleTasksWithTransaction(tasks);
-      return ResponseEntity.ok("Success");
-    } catch (Exception e) {
-      return ResponseEntity.badRequest().body("Error: " + e.getMessage());
-    }
+    return executeBulk(taskDtos, taskService::saveMultipleTasksWithTransaction);
   }
 
   @PostMapping("/bulk-non-transactional")
   public ResponseEntity<String> createBulkNonTransactional(@RequestBody List<TaskDto> taskDtos) {
+    return executeBulk(taskDtos, taskService::saveMultipleTasksWithoutTransaction);
+  }
+
+  private ResponseEntity<String> executeBulk(
+      List<TaskDto> taskDtos, Consumer<List<Task>> saveAction) {
     try {
-      List<Task> tasks = taskDtos.stream().map(taskMapper::toEntity).collect(Collectors.toList());
-      taskService.saveMultipleTasksWithoutTransaction(tasks);
+      List<Task> tasks = taskDtos.stream().map(taskMapper::toEntity).toList();
+      saveAction.accept(tasks);
       return ResponseEntity.ok("Success");
     } catch (Exception e) {
       return ResponseEntity.badRequest().body("Error: " + e.getMessage());
