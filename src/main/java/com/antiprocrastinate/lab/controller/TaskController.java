@@ -43,12 +43,14 @@ public class TaskController {
   }
 
   @PostMapping
-  public TaskDto create(@RequestBody Task task) {
+  public TaskDto create(@RequestBody TaskDto taskDto) {
+    Task task = taskMapper.toEntity(taskDto);
     return taskMapper.toDto(taskService.save(task));
   }
 
   @PutMapping("/{id}")
-  public TaskDto update(@PathVariable Long id, @RequestBody Task task) {
+  public TaskDto update(@PathVariable Long id, @RequestBody TaskDto taskDto) {
+    Task task = taskMapper.toEntity(taskDto);
     task.setId(id);
     return taskMapper.toDto(taskService.save(task));
   }

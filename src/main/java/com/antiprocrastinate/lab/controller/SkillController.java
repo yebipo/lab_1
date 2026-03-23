@@ -36,12 +36,14 @@ public class SkillController {
   }
 
   @PostMapping
-  public SkillDto create(@RequestBody Skill skill) {
+  public SkillDto create(@RequestBody SkillDto skillDto) {
+    Skill skill = skillMapper.toEntity(skillDto);
     return skillMapper.toDto(skillService.save(skill));
   }
 
   @PutMapping("/{id}")
-  public SkillDto update(@PathVariable Long id, @RequestBody Skill skill) {
+  public SkillDto update(@PathVariable Long id, @RequestBody SkillDto skillDto) {
+    Skill skill = skillMapper.toEntity(skillDto);
     skill.setId(id);
     return skillMapper.toDto(skillService.save(skill));
   }

@@ -36,12 +36,14 @@ public class WorkLogController {
   }
 
   @PostMapping
-  public WorkLogDto create(@RequestBody WorkLog workLog) {
+  public WorkLogDto create(@RequestBody WorkLogDto workLogDto) {
+    WorkLog workLog = workLogMapper.toEntity(workLogDto);
     return workLogMapper.toDto(workLogService.save(workLog));
   }
 
   @PutMapping("/{id}")
-  public WorkLogDto update(@PathVariable Long id, @RequestBody WorkLog workLog) {
+  public WorkLogDto update(@PathVariable Long id, @RequestBody WorkLogDto workLogDto) {
+    WorkLog workLog = workLogMapper.toEntity(workLogDto);
     workLog.setId(id);
     return workLogMapper.toDto(workLogService.save(workLog));
   }

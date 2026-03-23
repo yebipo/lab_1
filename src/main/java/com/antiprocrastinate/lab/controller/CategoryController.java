@@ -36,12 +36,14 @@ public class CategoryController {
   }
 
   @PostMapping
-  public CategoryDto create(@RequestBody Category category) {
+  public CategoryDto create(@RequestBody CategoryDto categoryDto) {
+    Category category = categoryMapper.toEntity(categoryDto);
     return categoryMapper.toDto(categoryService.save(category));
   }
 
   @PutMapping("/{id}")
-  public CategoryDto update(@PathVariable Long id, @RequestBody Category category) {
+  public CategoryDto update(@PathVariable Long id, @RequestBody CategoryDto categoryDto) {
+    Category category = categoryMapper.toEntity(categoryDto);
     category.setId(id);
     return categoryMapper.toDto(categoryService.save(category));
   }
