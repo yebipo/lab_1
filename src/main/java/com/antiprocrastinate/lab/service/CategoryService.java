@@ -6,20 +6,30 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
   private final CategoryRepository categoryRepository;
 
+  @Transactional(readOnly = true)
   public Set<Category> findAll() {
     return new HashSet<>(categoryRepository.findAll());
   }
 
+  @Transactional(readOnly = true)
+  public Category findById(Long id) {
+    return categoryRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+  }
+
+  @Transactional
   public Category save(Category category) {
     return categoryRepository.save(category);
   }
 
+  @Transactional
   public void deleteById(Long id) {
     categoryRepository.deleteById(id);
   }

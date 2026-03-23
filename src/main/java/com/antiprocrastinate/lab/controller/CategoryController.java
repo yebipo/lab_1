@@ -2,6 +2,7 @@ package com.antiprocrastinate.lab.controller;
 
 import com.antiprocrastinate.lab.dto.CategoryDto;
 import com.antiprocrastinate.lab.mapper.CategoryMapper;
+import com.antiprocrastinate.lab.model.Category;
 import com.antiprocrastinate.lab.service.CategoryService;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,9 +30,20 @@ public class CategoryController {
         .collect(Collectors.toSet());
   }
 
+  @GetMapping("/{id}")
+  public CategoryDto getById(@PathVariable Long id) {
+    return categoryMapper.toDto(categoryService.findById(id));
+  }
+
   @PostMapping
-  public CategoryDto create(@RequestBody CategoryDto categoryDto) {
-    return categoryMapper.toDto(categoryService.save(categoryMapper.toEntity(categoryDto)));
+  public CategoryDto create(@RequestBody Category category) {
+    return categoryMapper.toDto(categoryService.save(category));
+  }
+
+  @PutMapping("/{id}")
+  public CategoryDto update(@PathVariable Long id, @RequestBody Category category) {
+    category.setId(id);
+    return categoryMapper.toDto(categoryService.save(category));
   }
 
   @DeleteMapping("/{id}")

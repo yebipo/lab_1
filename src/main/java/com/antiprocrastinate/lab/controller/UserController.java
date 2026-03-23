@@ -2,6 +2,7 @@ package com.antiprocrastinate.lab.controller;
 
 import com.antiprocrastinate.lab.dto.UserDto;
 import com.antiprocrastinate.lab.mapper.UserMapper;
+import com.antiprocrastinate.lab.model.User;
 import com.antiprocrastinate.lab.service.UserService;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,9 +30,20 @@ public class UserController {
         .collect(Collectors.toSet());
   }
 
+  @GetMapping("/{id}")
+  public UserDto getById(@PathVariable Long id) {
+    return userMapper.toDto(userService.findById(id));
+  }
+
   @PostMapping
-  public UserDto create(@RequestBody UserDto userDto) {
-    return userMapper.toDto(userService.save(userMapper.toEntity(userDto)));
+  public UserDto create(@RequestBody User user) {
+    return userMapper.toDto(userService.save(user));
+  }
+
+  @PutMapping("/{id}")
+  public UserDto update(@PathVariable Long id, @RequestBody User user) {
+    user.setId(id);
+    return userMapper.toDto(userService.save(user));
   }
 
   @DeleteMapping("/{id}")
