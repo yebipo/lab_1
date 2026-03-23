@@ -1,6 +1,7 @@
 package com.antiprocrastinate.lab.mapper;
 
 import com.antiprocrastinate.lab.dto.WorkLogDto;
+import com.antiprocrastinate.lab.model.Task;
 import com.antiprocrastinate.lab.model.WorkLog;
 import org.springframework.stereotype.Component;
 
@@ -20,5 +21,25 @@ public class WorkLogMapper {
       dto.setTaskId(log.getTask().getId());
     }
     return dto;
+  }
+
+  public WorkLog toEntity(WorkLogDto dto) {
+    if (dto == null) {
+      return null;
+    }
+    WorkLog log = new WorkLog();
+    log.setId(dto.getId());
+    log.setDurationMinutes(dto.getDurationMinutes());
+    log.setComment(dto.getComment());
+    log.setInterruptionCount(dto.getInterruptionCount());
+    if (dto.getCreatedAt() != null) {
+      log.setCreatedAt(dto.getCreatedAt());
+    }
+    if (dto.getTaskId() != null) {
+      Task task = new Task();
+      task.setId(dto.getTaskId());
+      log.setTask(task);
+    }
+    return log;
   }
 }

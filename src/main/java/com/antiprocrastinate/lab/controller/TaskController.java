@@ -39,8 +39,8 @@ public class TaskController {
   }
 
   @PostMapping
-  public TaskDto create(@RequestBody Task task) {
-    return taskMapper.toDto(taskService.save(task));
+  public TaskDto create(@RequestBody TaskDto taskDto) {
+    return taskMapper.toDto(taskService.save(taskMapper.toEntity(taskDto)));
   }
 
   @DeleteMapping("/{id}")
@@ -49,8 +49,9 @@ public class TaskController {
   }
 
   @PostMapping("/bulk-transactional")
-  public ResponseEntity<String> createBulkTransactional(@RequestBody List<Task> tasks) {
+  public ResponseEntity<String> createBulkTransactional(@RequestBody List<TaskDto> taskDtos) {
     try {
+      List<Task> tasks = taskDtos.stream().map(taskMapper::toEntity).collect(Collectors.toList());
       taskService.saveMultipleTasksWithTransaction(tasks);
       return ResponseEntity.ok("Success");
     } catch (Exception e) {
@@ -59,8 +60,9 @@ public class TaskController {
   }
 
   @PostMapping("/bulk-non-transactional")
-  public ResponseEntity<String> createBulkNonTransactional(@RequestBody List<Task> tasks) {
+  public ResponseEntity<String> createBulkNonTransactional(@RequestBody List<TaskDto> taskDtos) {
     try {
+      List<Task> tasks = taskDtos.stream().map(taskMapper::toEntity).collect(Collectors.toList());
       taskService.saveMultipleTasksWithoutTransaction(tasks);
       return ResponseEntity.ok("Success");
     } catch (Exception e) {

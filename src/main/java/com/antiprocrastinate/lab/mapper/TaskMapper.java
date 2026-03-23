@@ -3,6 +3,8 @@ package com.antiprocrastinate.lab.mapper;
 import com.antiprocrastinate.lab.dto.TaskDto;
 import com.antiprocrastinate.lab.model.Skill;
 import com.antiprocrastinate.lab.model.Task;
+import com.antiprocrastinate.lab.model.TaskStatus;
+import com.antiprocrastinate.lab.model.User;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
@@ -32,5 +34,40 @@ public class TaskMapper {
     }
 
     return dto;
+  }
+
+  public Task toEntity(TaskDto dto) {
+    if (dto == null) {
+      return null;
+    }
+
+    Task task = new Task();
+    task.setId(dto.getId());
+    task.setTitle(dto.getTitle());
+    task.setDescription(dto.getDescription());
+
+    if (dto.getStatus() != null) {
+      task.setStatus(TaskStatus.valueOf(dto.getStatus()));
+    }
+
+    task.setFocusScore(dto.getFocusScore());
+
+    if (dto.getUserId() != null) {
+      User user = new User();
+      user.setId(dto.getUserId());
+      task.setUser(user);
+    }
+
+    if (dto.getSkillIds() != null) {
+      task.setSkills(dto.getSkillIds().stream()
+          .map(id -> {
+            Skill skill = new Skill();
+            skill.setId(id);
+            return skill;
+          })
+          .collect(Collectors.toSet()));
+    }
+
+    return task;
   }
 }

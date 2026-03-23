@@ -2,7 +2,6 @@ package com.antiprocrastinate.lab.controller;
 
 import com.antiprocrastinate.lab.dto.WorkLogDto;
 import com.antiprocrastinate.lab.mapper.WorkLogMapper;
-import com.antiprocrastinate.lab.model.WorkLog;
 import com.antiprocrastinate.lab.service.WorkLogService;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,8 +29,8 @@ public class WorkLogController {
   }
 
   @PostMapping
-  public WorkLogDto create(@RequestBody WorkLog workLog) {
-    return workLogMapper.toDto(workLogService.save(workLog));
+  public WorkLogDto create(@RequestBody WorkLogDto workLogDto) {
+    return workLogMapper.toDto(workLogService.save(workLogMapper.toEntity(workLogDto)));
   }
 
   @DeleteMapping("/{id}")

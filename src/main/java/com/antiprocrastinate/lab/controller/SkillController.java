@@ -2,7 +2,6 @@ package com.antiprocrastinate.lab.controller;
 
 import com.antiprocrastinate.lab.dto.SkillDto;
 import com.antiprocrastinate.lab.mapper.SkillMapper;
-import com.antiprocrastinate.lab.model.Skill;
 import com.antiprocrastinate.lab.service.SkillService;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,8 +29,8 @@ public class SkillController {
   }
 
   @PostMapping
-  public SkillDto create(@RequestBody Skill skill) {
-    return skillMapper.toDto(skillService.save(skill));
+  public SkillDto create(@RequestBody SkillDto skillDto) {
+    return skillMapper.toDto(skillService.save(skillMapper.toEntity(skillDto)));
   }
 
   @DeleteMapping("/{id}")

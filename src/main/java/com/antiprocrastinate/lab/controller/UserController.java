@@ -2,7 +2,6 @@ package com.antiprocrastinate.lab.controller;
 
 import com.antiprocrastinate.lab.dto.UserDto;
 import com.antiprocrastinate.lab.mapper.UserMapper;
-import com.antiprocrastinate.lab.model.User;
 import com.antiprocrastinate.lab.service.UserService;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,8 +29,8 @@ public class UserController {
   }
 
   @PostMapping
-  public UserDto create(@RequestBody User user) {
-    return userMapper.toDto(userService.save(user));
+  public UserDto create(@RequestBody UserDto userDto) {
+    return userMapper.toDto(userService.save(userMapper.toEntity(userDto)));
   }
 
   @DeleteMapping("/{id}")

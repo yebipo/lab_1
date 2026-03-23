@@ -2,7 +2,6 @@ package com.antiprocrastinate.lab.controller;
 
 import com.antiprocrastinate.lab.dto.CategoryDto;
 import com.antiprocrastinate.lab.mapper.CategoryMapper;
-import com.antiprocrastinate.lab.model.Category;
 import com.antiprocrastinate.lab.service.CategoryService;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,8 +29,8 @@ public class CategoryController {
   }
 
   @PostMapping
-  public CategoryDto create(@RequestBody Category category) {
-    return categoryMapper.toDto(categoryService.save(category));
+  public CategoryDto create(@RequestBody CategoryDto categoryDto) {
+    return categoryMapper.toDto(categoryService.save(categoryMapper.toEntity(categoryDto)));
   }
 
   @DeleteMapping("/{id}")
