@@ -6,24 +6,20 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class WorkLogService {
   private final WorkLogRepository workLogRepository;
 
-  @Transactional(readOnly = true)
   public Set<WorkLog> findAll() {
     return new HashSet<>(workLogRepository.findAll());
   }
 
-  @Transactional
   public WorkLog save(WorkLog workLog) {
     return workLogRepository.save(workLog);
   }
 
-  @Transactional
   public void deleteById(Long id) {
     workLogRepository.deleteById(id);
   }

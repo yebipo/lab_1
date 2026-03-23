@@ -1,7 +1,6 @@
 package com.antiprocrastinate.lab.mapper;
 
 import com.antiprocrastinate.lab.dto.TaskDto;
-import com.antiprocrastinate.lab.model.Category;
 import com.antiprocrastinate.lab.model.Skill;
 import com.antiprocrastinate.lab.model.Task;
 import java.util.stream.Collectors;
@@ -25,10 +24,6 @@ public class TaskMapper {
     if (task.getUser() != null) {
       dto.setUserId(task.getUser().getId());
     }
-
-    dto.setCategoryIds(task.getCategories().stream()
-        .map(Category::getId)
-        .collect(Collectors.toSet()));
 
     if (task.getSkills() != null) {
       dto.setSkillIds(task.getSkills().stream()

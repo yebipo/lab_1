@@ -11,6 +11,5 @@ public class TaskDto {
   private String status;
   private Integer focusScore;
   private Long userId;
-  private Set<Long> categoryIds;
   private Set<Long> skillIds;
 }

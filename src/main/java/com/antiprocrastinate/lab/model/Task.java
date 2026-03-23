@@ -14,9 +14,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -47,11 +45,4 @@ public class Task {
       joinColumns = @JoinColumn(name = "task_id"),
       inverseJoinColumns = @JoinColumn(name = "skill_id"))
   private Set<Skill> skills = new HashSet<>();
-
-  public Set<Category> getCategories() {
-    return skills.stream()
-        .map(Skill::getCategory)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toSet());
-  }
 }
