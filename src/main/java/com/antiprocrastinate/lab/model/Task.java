@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
@@ -21,6 +22,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.type.SqlTypes;
 
 @Entity
@@ -51,9 +54,14 @@ public class Task {
   private User user;
 
   @ManyToMany(fetch = FetchType.LAZY)
-  @JoinTable(name = "task_skills",
+  @JoinTable(
+      name = "task_skills",
       joinColumns = @JoinColumn(name = "task_id"),
-      inverseJoinColumns = @JoinColumn(name = "skill_id"))
-  @Builder.Default
+      inverseJoinColumns = @JoinColumn(name = "skill_id")
+  )
+  @OnDelete(action = OnDeleteAction.CASCADE)
   private Set<Skill> skills = new HashSet<>();
+
+  @OneToMany(mappedBy = "task", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+  private Set<WorkLog> workLogs = new HashSet<>();
 }

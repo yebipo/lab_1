@@ -6,13 +6,24 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TaskService {
   private final TaskRepository taskRepo;
+
+  private TaskService self;
+
+  @Autowired
+  public void setSelf(@Lazy TaskService self) {
+    this.self = self;
+  }
 
   public static class NotFoundException extends RuntimeException {
     public NotFoundException(String message) {
@@ -45,10 +56,9 @@ public class TaskService {
 
   @Transactional
   public void deleteById(Long id) {
-    if (!taskRepo.existsById(id)) {
-      throw new NotFoundException("Cannot delete: Task not found with id: " + id);
-    }
-    taskRepo.deleteById(id);
+    Task task = taskRepo.findById(id)
+        .orElseThrow(() -> new NotFoundException("Cannot delete: Task not found with id: " + id));
+    taskRepo.delete(task);
   }
 
   @Transactional
@@ -57,7 +67,13 @@ public class TaskService {
   }
 
   public void saveMultipleWithoutTransaction(List<Task> tasks) {
-    tasks.forEach(this::save);
+    tasks.forEach(task -> {
+      try {
+        self.save(task);
+      } catch (Exception _) {
+        log.warn("Failed to save task with title: {}. Skipping...", task.getTitle());
+      }
+    });
   }
 
   private void validateTask(Task task) {
