@@ -42,7 +42,7 @@ public class Task {
 
   @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "task_status_type")
-  @JdbcTypeCode(SqlTypes.NAMED_ENUM) // Фикс для кастомного ENUM в PostgreSQL
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Builder.Default
   private TaskStatus status = TaskStatus.TODO;
 
