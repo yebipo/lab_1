@@ -27,6 +27,6 @@ public class Category {
   private String description;
   private String iconUrl;
 
-  @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<Skill> skills = new HashSet<>();
 }

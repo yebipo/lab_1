@@ -1,7 +1,9 @@
 package com.antiprocrastinate.lab.service;
 
 import com.antiprocrastinate.lab.model.Skill;
+import com.antiprocrastinate.lab.model.Task;
 import com.antiprocrastinate.lab.repository.SkillRepository;
+import com.antiprocrastinate.lab.repository.TaskRepository;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class SkillService {
   private final SkillRepository skillRepository;
+  private final TaskRepository taskRepository;
 
   @Transactional(readOnly = true)
   public Set<Skill> findAll() {
@@ -31,6 +34,21 @@ public class SkillService {
 
   @Transactional
   public void deleteById(Long id) {
-    skillRepository.deleteById(id);
+    Skill skill = skillRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Skill not found with id: " + id));
+
+    Set<Task> relatedTasks = new HashSet<>(skill.getTasks());
+
+    for (Task task : relatedTasks) {
+      task.getSkills().remove(skill);
+
+      if (task.getSkills().isEmpty()) {
+        taskRepository.delete(task);
+      } else {
+        taskRepository.save(task);
+      }
+    }
+
+    skillRepository.delete(skill);
   }
 }

@@ -7,6 +7,7 @@ import com.antiprocrastinate.lab.service.CategoryService;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -49,7 +50,8 @@ public class CategoryController {
   }
 
   @DeleteMapping("/{id}")
-  public void delete(@PathVariable Long id) {
+  public ResponseEntity<Void> delete(@PathVariable Long id) {
     categoryService.deleteById(id);
+    return ResponseEntity.noContent().build();
   }
 }

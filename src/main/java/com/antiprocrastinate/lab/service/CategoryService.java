@@ -1,6 +1,7 @@
 package com.antiprocrastinate.lab.service;
 
 import com.antiprocrastinate.lab.model.Category;
+import com.antiprocrastinate.lab.model.Skill;
 import com.antiprocrastinate.lab.repository.CategoryRepository;
 import java.util.HashSet;
 import java.util.Set;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CategoryService {
   private final CategoryRepository categoryRepository;
+  private final SkillService skillService;
 
   @Transactional(readOnly = true)
   public Set<Category> findAll() {
@@ -31,6 +33,14 @@ public class CategoryService {
 
   @Transactional
   public void deleteById(Long id) {
-    categoryRepository.deleteById(id);
+    Category category = categoryRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+
+    Set<Skill> skills = new HashSet<>(category.getSkills());
+    for (Skill skill : skills) {
+      skillService.deleteById(skill.getId());
+    }
+
+    categoryRepository.delete(category);
   }
 }
