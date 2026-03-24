@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -35,6 +39,19 @@ public class TaskController {
   @GetMapping("/{id}")
   public TaskDto getById(@PathVariable Long id) {
     return taskMapper.toDto(taskService.findById(id));
+  }
+
+  @GetMapping("/search")
+  public Page<TaskDto> search(
+      @RequestParam Long userId,
+      @RequestParam Long skillId,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(defaultValue = "false") boolean useNative
+  ) {
+    Pageable pageable = PageRequest.of(page, size);
+    Page<Task> tasks = taskService.getTasksFiltered(userId, skillId, pageable, useNative);
+    return tasks.map(taskMapper::toDto);
   }
 
   @PostMapping
