@@ -24,7 +24,6 @@ public class TaskService {
   private final TaskRepository taskRepo;
   private TaskService self;
 
-  // 4. In-memory индекс на основе HashMap
   private final Map<TaskSearchKey, Page<Task>> taskIndex = new HashMap<>();
 
   @Autowired
