@@ -24,6 +24,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
   @EntityGraph(attributePaths = {"user", "skills"})
   Optional<Task> findById(Long id);
 
+  @EntityGraph(attributePaths = {"user", "skills"})
   @Query("SELECT t FROM Task t JOIN t.skills s "
       + "WHERE t.user.id = :userId AND s.id = :skillId")
   Page<Task> findTasksByUserAndSkillJpql(

@@ -21,6 +21,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -53,6 +54,7 @@ public class Task {
   @JoinColumn(name = "user_id")
   private User user;
 
+  @BatchSize(size = 20)
   @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
       name = "task_skills",
