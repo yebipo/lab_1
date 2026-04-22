@@ -4,10 +4,13 @@ import com.antiprocrastinate.lab.dto.WorkLogDto;
 import com.antiprocrastinate.lab.mapper.WorkLogMapper;
 import com.antiprocrastinate.lab.model.WorkLog;
 import com.antiprocrastinate.lab.service.WorkLogService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,16 +18,19 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/work-logs")
+@RequestMapping("/api/worklogs")
 @RequiredArgsConstructor
+@Tag(name = "Логи работы", description = "Управление записями о проделанной работе")
 public class WorkLogController {
   private final WorkLogService workLogService;
   private final WorkLogMapper workLogMapper;
 
   @GetMapping
+  @Operation(summary = "Получить все логи работы")
   public Set<WorkLogDto> getAll() {
     return workLogService.findAll().stream()
         .map(workLogMapper::toDto)
@@ -32,26 +38,31 @@ public class WorkLogController {
   }
 
   @GetMapping("/{id}")
+  @Operation(summary = "Получить лог работы по ID")
   public WorkLogDto getById(@PathVariable Long id) {
     return workLogMapper.toDto(workLogService.findById(id));
   }
 
   @PostMapping
-  public WorkLogDto create(@RequestBody WorkLogDto workLogDto) {
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(summary = "Создать новый лог работы")
+  public WorkLogDto create(@Valid @RequestBody WorkLogDto workLogDto) {
     WorkLog workLog = workLogMapper.toEntity(workLogDto);
     return workLogMapper.toDto(workLogService.save(workLog));
   }
 
   @PutMapping("/{id}")
-  public WorkLogDto update(@PathVariable Long id, @RequestBody WorkLogDto workLogDto) {
+  @Operation(summary = "Обновить лог работы")
+  public WorkLogDto update(@PathVariable Long id, @Valid @RequestBody WorkLogDto workLogDto) {
     WorkLog workLog = workLogMapper.toEntity(workLogDto);
     workLog.setId(id);
     return workLogMapper.toDto(workLogService.save(workLog));
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> delete(@PathVariable Long id) {
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(summary = "Удалить лог работы")
+  public void delete(@PathVariable Long id) {
     workLogService.deleteById(id);
-    return ResponseEntity.noContent().build();
   }
 }
