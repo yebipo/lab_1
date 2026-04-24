@@ -5,6 +5,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -24,13 +25,26 @@ public class GlobalExceptionHandler {
             .build())
         .toList();
 
+    // Добавляем логирование ошибки валидации
+    log.warn("Ошибка валидации данных: {}", errors);
+
     return buildResponse(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED",
         "Ошибка валидации данных", errors);
   }
 
-  @ExceptionHandler(EntityNotFoundException.class)
-  public ResponseEntity<ErrorResponseDto> handleNotFound(EntityNotFoundException ex) {
+  @ExceptionHandler(ResourceNotFoundException.class)
+  public ResponseEntity<ErrorResponseDto> handleResourceNotFound(ResourceNotFoundException ex) {
     return buildResponse(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage(), null);
+  }
+
+  @ExceptionHandler(BusinessOperationException.class)
+  public ResponseEntity<ErrorResponseDto> handleBusinessOperationException(BusinessOperationException ex) {
+    return buildResponse(HttpStatus.BAD_REQUEST, "BAD_REQUEST", ex.getMessage(), null);
+  }
+
+  @ExceptionHandler(EntityNotFoundException.class)
+  public ResponseEntity<ErrorResponseDto> handleEntityNotFound(EntityNotFoundException ex) {
+    return buildResponse(HttpStatus.NOT_FOUND, "NOT_FOUND", "Сущность не найдена", null);
   }
 
   @ExceptionHandler(Exception.class)
@@ -38,6 +52,13 @@ public class GlobalExceptionHandler {
     log.error("Internal Error: ", ex);
     return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR,
         "INTERNAL_ERROR", "Произошла внутренняя ошибка сервера", null);
+  }
+
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  public ResponseEntity<ErrorResponseDto> handleDataIntegrity(DataIntegrityViolationException ex) {
+    return buildResponse(HttpStatus.BAD_REQUEST, "DATA_INTEGRITY_VIOLATION",
+        "Ошибка сохранения: связанный ресурс (пользователь или навык) не существует", null);
+
   }
 
   private ResponseEntity<ErrorResponseDto> buildResponse(

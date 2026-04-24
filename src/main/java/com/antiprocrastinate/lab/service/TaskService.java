@@ -1,5 +1,6 @@
 package com.antiprocrastinate.lab.service;
 
+import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.model.Task;
 import com.antiprocrastinate.lab.repository.TaskRepository;
 import com.antiprocrastinate.lab.util.TaskSearchKey;
@@ -31,12 +32,6 @@ public class TaskService {
     this.self = self;
   }
 
-  public static class NotFoundException extends RuntimeException {
-    public NotFoundException(String message) {
-      super(message);
-    }
-  }
-
   @Transactional(readOnly = true)
   public Set<Task> findAll() {
     return new HashSet<>(taskRepo.findAll());
@@ -45,7 +40,7 @@ public class TaskService {
   @Transactional(readOnly = true)
   public Task findById(Long id) {
     return taskRepo.findById(id)
-        .orElseThrow(() -> new NotFoundException("Task not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + id));
   }
 
   @Transactional
@@ -58,7 +53,7 @@ public class TaskService {
   @Transactional
   public void deleteById(Long id) {
     Task task = taskRepo.findById(id)
-        .orElseThrow(() -> new NotFoundException("Cannot delete: Task not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("Cannot delete: Task not found with id: " + id));
     taskRepo.delete(task);
     invalidateIndex();
   }

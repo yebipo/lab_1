@@ -1,5 +1,6 @@
 package com.antiprocrastinate.lab.service;
 
+import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.model.User;
 import com.antiprocrastinate.lab.repository.UserRepository;
 import java.util.HashSet;
@@ -21,7 +22,7 @@ public class UserService {
   @Transactional(readOnly = true)
   public User findById(Long id) {
     return userRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
   }
 
   @Transactional

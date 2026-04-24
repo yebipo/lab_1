@@ -1,5 +1,6 @@
 package com.antiprocrastinate.lab.service;
 
+import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.model.Category;
 import com.antiprocrastinate.lab.model.Skill;
 import com.antiprocrastinate.lab.repository.CategoryRepository;
@@ -23,7 +24,7 @@ public class CategoryService {
   @Transactional(readOnly = true)
   public Category findById(Long id) {
     return categoryRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
   }
 
   @Transactional
@@ -34,7 +35,7 @@ public class CategoryService {
   @Transactional
   public void deleteById(Long id) {
     Category category = categoryRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
 
     Set<Skill> skills = new HashSet<>(category.getSkills());
     for (Skill skill : skills) {

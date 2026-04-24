@@ -1,5 +1,6 @@
 package com.antiprocrastinate.lab.service;
 
+import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.model.WorkLog;
 import com.antiprocrastinate.lab.repository.WorkLogRepository;
 import java.util.HashSet;
@@ -21,7 +22,7 @@ public class WorkLogService {
   @Transactional(readOnly = true)
   public WorkLog findById(Long id) {
     return workLogRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("WorkLog not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("WorkLog not found with id: " + id));
   }
 
   @Transactional

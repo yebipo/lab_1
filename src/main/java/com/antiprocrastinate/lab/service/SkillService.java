@@ -1,5 +1,6 @@
 package com.antiprocrastinate.lab.service;
 
+import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.model.Skill;
 import com.antiprocrastinate.lab.model.Task;
 import com.antiprocrastinate.lab.repository.SkillRepository;
@@ -24,7 +25,7 @@ public class SkillService {
   @Transactional(readOnly = true)
   public Skill findById(Long id) {
     return skillRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Skill not found with id: " + id));
+        .orElseThrow(() ->new ResourceNotFoundException("Skill not found with id: " + id));
   }
 
   @Transactional
@@ -35,7 +36,7 @@ public class SkillService {
   @Transactional
   public void deleteById(Long id) {
     Skill skill = skillRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Skill not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("Skill not found with id: " + id));
 
     Set<Task> relatedTasks = new HashSet<>(skill.getTasks());
 
