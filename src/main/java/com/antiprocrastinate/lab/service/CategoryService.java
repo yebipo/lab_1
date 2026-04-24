@@ -7,6 +7,8 @@ import com.antiprocrastinate.lab.repository.CategoryRepository;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,8 +19,8 @@ public class CategoryService {
   private final SkillService skillService;
 
   @Transactional(readOnly = true)
-  public Set<Category> findAll() {
-    return new HashSet<>(categoryRepository.findAll());
+  public Page<Category> findAll(Pageable pageable) {
+    return categoryRepository.findAll(pageable);
   }
 
   @Transactional(readOnly = true)

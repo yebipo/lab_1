@@ -1,7 +1,6 @@
 package com.antiprocrastinate.lab.repository;
 
 import com.antiprocrastinate.lab.model.Task;
-import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.data.domain.Page;
@@ -17,11 +16,11 @@ import org.springframework.stereotype.Repository;
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
   @Override
-  @EntityGraph(attributePaths = {"user", "skills"})
-  List<Task> findAll();
+  @EntityGraph(attributePaths = {"user"})
+  Page<Task> findAll(Pageable pageable);
 
   @Override
-  @EntityGraph(attributePaths = {"user", "skills"})
+  @EntityGraph(attributePaths = {"user", "skills", "workLogs"})
   Optional<Task> findById(Long id);
 
   @EntityGraph(attributePaths = {"user", "skills"})

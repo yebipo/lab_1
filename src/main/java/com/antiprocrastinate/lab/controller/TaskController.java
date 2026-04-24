@@ -8,8 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -36,11 +34,12 @@ public class TaskController {
   private final TaskMapper taskMapper;
 
   @GetMapping
-  @Operation(summary = "Получить все задачи")
-  public Set<TaskDto> getAll() {
-    return taskService.findAll().stream()
-        .map(taskMapper::toDto)
-        .collect(Collectors.toSet());
+  @Operation(summary = "Получить все задачи (с пагинацией)")
+  public Page<TaskDto> getAll(
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size
+  ) {
+    return taskService.findAll(PageRequest.of(page, size)).map(taskMapper::toDto);
   }
 
   @GetMapping("/{id}")

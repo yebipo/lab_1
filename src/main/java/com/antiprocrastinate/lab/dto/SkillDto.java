@@ -1,5 +1,6 @@
 package com.antiprocrastinate.lab.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -8,7 +9,8 @@ import lombok.Data;
 @Data
 @Schema(description = "DTO Навыка")
 public class SkillDto {
-  @Schema(description = "Уникальный идентификатор")
+  @Schema(description = "Уникальный идентификатор", accessMode = Schema.AccessMode.READ_ONLY)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private Long id;
 
   @NotBlank(message = "Название навыка не может быть пустым")
@@ -22,11 +24,11 @@ public class SkillDto {
   private String iconUrl;
 
   @Min(value = 1, message = "Уровень должен быть не меньше 1")
-  @Schema(description = "Текущий уровень навыка", example = "5")
+  @Schema(description = "Текущий уровень навыка", example = "1")
   private Integer level;
 
-  @Min(value = 0, message = "XP не может быть отрицательным")
-  @Schema(description = "Текущий опыт", example = "150")
+  @Schema(description = "Текущий опыт", example = "0", accessMode = Schema.AccessMode.READ_ONLY)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private Integer currentXp;
 
   @Min(value = 1, message = "Требуемый XP должен быть больше 0")

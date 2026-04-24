@@ -1,5 +1,6 @@
 package com.antiprocrastinate.lab.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -11,7 +12,8 @@ import lombok.Data;
 @Data
 @Schema(description = "DTO Задачи")
 public class TaskDto {
-  @Schema(description = "Уникальный идентификатор")
+  @Schema(description = "Уникальный идентификатор", accessMode = Schema.AccessMode.READ_ONLY)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private Long id;
 
   @NotBlank(message = "Заголовок не может быть пустым")

@@ -5,10 +5,8 @@ import com.antiprocrastinate.lab.model.Task;
 import com.antiprocrastinate.lab.repository.TaskRepository;
 import com.antiprocrastinate.lab.util.TaskSearchKey;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +31,8 @@ public class TaskService {
   }
 
   @Transactional(readOnly = true)
-  public Set<Task> findAll() {
-    return new HashSet<>(taskRepo.findAll());
+  public Page<Task> findAll(Pageable pageable) {
+    return taskRepo.findAll(pageable);
   }
 
   @Transactional(readOnly = true)
@@ -84,9 +82,8 @@ public class TaskService {
     }
 
     Page<Task> result = useNative
-        ?
-        taskRepo.findTasksByUserAndSkillNative(userId, skillId, pageable) :
-        taskRepo.findTasksByUserAndSkillJpql(userId, skillId, pageable);
+        ? taskRepo.findTasksByUserAndSkillNative(userId, skillId, pageable)
+        : taskRepo.findTasksByUserAndSkillJpql(userId, skillId, pageable);
 
     taskIndex.put(key, result);
     return result;

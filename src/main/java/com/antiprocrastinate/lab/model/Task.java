@@ -64,6 +64,7 @@ public class Task {
   @OnDelete(action = OnDeleteAction.CASCADE)
   private Set<Skill> skills = new HashSet<>();
 
+  @BatchSize(size = 20)
   @OneToMany(mappedBy = "task", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
   private Set<WorkLog> workLogs = new HashSet<>();
 }

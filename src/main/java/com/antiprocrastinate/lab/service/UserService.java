@@ -3,9 +3,9 @@ package com.antiprocrastinate.lab.service;
 import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.model.User;
 import com.antiprocrastinate.lab.repository.UserRepository;
-import java.util.HashSet;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,8 +15,8 @@ public class UserService {
   private final UserRepository userRepository;
 
   @Transactional(readOnly = true)
-  public Set<User> findAll() {
-    return new HashSet<>(userRepository.findAll());
+  public Page<User> findAll(Pageable pageable) {
+    return userRepository.findAll(pageable);
   }
 
   @Transactional(readOnly = true)

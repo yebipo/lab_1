@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Table(name = "users")
@@ -29,7 +30,7 @@ public class User {
   private Integer dailyGoalMinutes;
   private String avatarUrl;
 
+  @BatchSize(size = 20)
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
   private Set<Task> tasks = new HashSet<>();
-
 }

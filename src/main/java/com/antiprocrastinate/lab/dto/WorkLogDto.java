@@ -1,5 +1,6 @@
 package com.antiprocrastinate.lab.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -9,7 +10,8 @@ import lombok.Data;
 @Data
 @Schema(description = "DTO Лога работы")
 public class WorkLogDto {
-  @Schema(description = "Уникальный идентификатор")
+  @Schema(description = "Уникальный идентификатор", accessMode = Schema.AccessMode.READ_ONLY)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private Long id;
 
   @NotNull(message = "ID задачи обязательно")
@@ -33,6 +35,7 @@ public class WorkLogDto {
   @Schema(description = "Количество отвлечений/прерываний", example = "2")
   private Integer interruptionCount;
 
-  @Schema(description = "Время создания записи")
+  @Schema(description = "Время создания записи", accessMode = Schema.AccessMode.READ_ONLY)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private LocalDateTime createdAt;
 }

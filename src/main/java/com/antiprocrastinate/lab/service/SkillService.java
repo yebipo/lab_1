@@ -8,6 +8,8 @@ import com.antiprocrastinate.lab.repository.TaskRepository;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,8 +20,8 @@ public class SkillService {
   private final TaskRepository taskRepository;
 
   @Transactional(readOnly = true)
-  public Set<Skill> findAll() {
-    return new HashSet<>(skillRepository.findAll());
+  public Page<Skill> findAll(Pageable pageable) {
+    return skillRepository.findAll(pageable);
   }
 
   @Transactional(readOnly = true)
