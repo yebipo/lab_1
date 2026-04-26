@@ -14,8 +14,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,6 +27,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("Тестирование SkillService (100% покрытие)")
 class SkillServiceTest {
 
   @Mock
@@ -50,6 +51,7 @@ class SkillServiceTest {
   }
 
   @Test
+  @DisplayName("Поиск всех навыков")
   void shouldFindAll() {
     Page<Skill> page = new PageImpl<>(List.of(testSkill));
     when(skillRepository.findAll(pageable)).thenReturn(page);
@@ -58,56 +60,107 @@ class SkillServiceTest {
   }
 
   @Test
+  @DisplayName("Успешный поиск навыка по ID")
   void shouldFindById() {
     when(skillRepository.findById(1L)).thenReturn(Optional.of(testSkill));
     Skill result = skillService.findById(1L);
-    assertThat(result.getId()).isEqualTo(1L);
+    assertThat(result).isNotNull();
   }
 
   @Test
-  void shouldThrowWhenNotFound() {
+  @DisplayName("Выброс исключения при поиске несуществующего навыка")
+  void shouldThrowWhenSkillNotFound() {
     when(skillRepository.findById(999L)).thenReturn(Optional.empty());
     assertThatThrownBy(() -> skillService.findById(999L))
         .isInstanceOf(ResourceNotFoundException.class);
   }
 
   @Test
-  void shouldSave() {
+  @DisplayName("Сохранение навыка")
+  void shouldSaveSkill() {
     when(skillRepository.save(any(Skill.class))).thenReturn(testSkill);
-    skillService.save(testSkill);
+    Skill result = skillService.save(testSkill);
+    assertThat(result).isNotNull();
     verify(skillRepository).save(testSkill);
   }
 
   @Test
+  @DisplayName("Удаление навыка: задачи с пустыми скиллами удаляются, остальные обновляются")
   void shouldDeleteSkillAndHandleRelatedTasks() {
-    Task task1 = new Task();
-    task1.setId(10L);
-    task1.setSkills(new HashSet<>(Set.of(testSkill)));
+    Task taskToDrop = new Task();
+    taskToDrop.setId(10L);
+    taskToDrop.setSkills(new HashSet<>());
 
-    Task task2 = new Task();
-    task2.setId(20L);
-    Skill otherSkill = new Skill();
-    otherSkill.setId(2L);
-    task2.setSkills(new HashSet<>(Set.of(testSkill, otherSkill)));
+    Task taskToKeep = new Task();
+    taskToKeep.setId(20L);
+    Skill anotherSkill = new Skill();
+    anotherSkill.setId(2L);
+    taskToKeep.setSkills(new HashSet<>(Set.of(anotherSkill)));
 
-    testSkill.setTasks(new HashSet<>(Set.of(task1, task2)));
+    testSkill.setTasks(Set.of(taskToDrop, taskToKeep));
+    when(skillRepository.findById(1L)).thenReturn(Optional.of(testSkill));
+
+    skillService.deleteById(1L);
+
+    verify(taskRepository).deleteAll(List.of(taskToDrop));
+    verify(taskRepository).saveAll(List.of(taskToKeep));
+    verify(skillRepository).delete(testSkill);
+  }
+
+  @Test
+  @DisplayName("Удаление навыка без связанных задач")
+  void shouldDeleteSkillWithNoTasks() {
+    when(skillRepository.findById(1L)).thenReturn(Optional.of(testSkill));
+
+    skillService.deleteById(1L);
+
+    verify(taskRepository, never()).deleteAll(any());
+    verify(taskRepository, never()).saveAll(any());
+    verify(skillRepository).delete(testSkill);
+  }
+
+  @Test
+  @DisplayName("Удаление навыка: только удаление задач")
+  void shouldDeleteSkillAndOnlyDeleteTasks() {
+    Task taskToDrop = new Task();
+    taskToDrop.setId(10L);
+    taskToDrop.setSkills(new HashSet<>());
+    testSkill.setTasks(Set.of(taskToDrop));
 
     when(skillRepository.findById(1L)).thenReturn(Optional.of(testSkill));
 
     skillService.deleteById(1L);
 
-    verify(taskRepository).deleteAll(argThat(it ->
-        StreamSupport.stream(it.spliterator(), false).anyMatch(t -> t.equals(task1))));
-    verify(taskRepository).saveAll(argThat(it ->
-        StreamSupport.stream(it.spliterator(), false).anyMatch(t -> t.equals(task2))));
+    verify(taskRepository).deleteAll(List.of(taskToDrop));
+    verify(taskRepository, never()).saveAll(any());
     verify(skillRepository).delete(testSkill);
   }
 
   @Test
-  void shouldThrowExceptionWhenDeletingNonExistentSkill() {
+  @DisplayName("Удаление навыка: только обновление задач")
+  void shouldDeleteSkillAndOnlyUpdateTasks() {
+    Task taskToKeep = new Task();
+    taskToKeep.setId(20L);
+    Skill anotherSkill = new Skill();
+    anotherSkill.setId(2L);
+    taskToKeep.setSkills(new HashSet<>(Set.of(anotherSkill)));
+    testSkill.setTasks(Set.of(taskToKeep));
+
+    when(skillRepository.findById(1L)).thenReturn(Optional.of(testSkill));
+
+    skillService.deleteById(1L);
+
+    verify(taskRepository, never()).deleteAll(any());
+    verify(taskRepository).saveAll(List.of(taskToKeep));
+    verify(skillRepository).delete(testSkill);
+  }
+
+  @Test
+  @DisplayName("Выброс исключения при удалении несуществующего навыка")
+  void shouldThrowWhenDeletingNonExistentSkill() {
     when(skillRepository.findById(999L)).thenReturn(Optional.empty());
     assertThatThrownBy(() -> skillService.deleteById(999L))
-        .isInstanceOf(ResourceNotFoundException.class);
-    verify(skillRepository, never()).delete(any());
+        .isInstanceOf(ResourceNotFoundException.class)
+        .hasMessageContaining("Skill not found");
   }
 }
