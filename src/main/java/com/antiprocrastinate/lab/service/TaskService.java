@@ -51,7 +51,8 @@ public class TaskService {
   @Transactional
   public void deleteById(Long id) {
     Task task = taskRepo.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Cannot delete: Task not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException(
+            "Cannot delete: Task not found with id: " + id));
     taskRepo.delete(task);
     invalidateIndex();
   }
@@ -66,7 +67,7 @@ public class TaskService {
       try {
         self.save(task);
       } catch (Exception e) {
-        log.warn("Error saving task", e);
+        log.warn("Error saving task: {}", task.getId(), e);
       }
     });
   }

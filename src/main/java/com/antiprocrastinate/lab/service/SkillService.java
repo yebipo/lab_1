@@ -5,8 +5,9 @@ import com.antiprocrastinate.lab.model.Skill;
 import com.antiprocrastinate.lab.model.Task;
 import com.antiprocrastinate.lab.repository.SkillRepository;
 import com.antiprocrastinate.lab.repository.TaskRepository;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +28,7 @@ public class SkillService {
   @Transactional(readOnly = true)
   public Skill findById(Long id) {
     return skillRepository.findById(id)
-        .orElseThrow(() ->new ResourceNotFoundException("Skill not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("Skill not found with id: " + id));
   }
 
   @Transactional
@@ -40,16 +41,15 @@ public class SkillService {
     Skill skill = skillRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Skill not found with id: " + id));
 
-    Set<Task> relatedTasks = new HashSet<>(skill.getTasks());
+    Map<Boolean, List<Task>> partitionedTasks = skill.getTasks().stream()
+        .collect(Collectors.partitioningBy(task -> task.getSkills().isEmpty()));
 
-    for (Task task : relatedTasks) {
-      task.getSkills().remove(skill);
+    if (!partitionedTasks.get(true).isEmpty()) {
+      taskRepository.deleteAll(partitionedTasks.get(true));
+    }
 
-      if (task.getSkills().isEmpty()) {
-        taskRepository.delete(task);
-      } else {
-        taskRepository.save(task);
-      }
+    if (!partitionedTasks.get(false).isEmpty()) {
+      taskRepository.saveAll(partitionedTasks.get(false));
     }
 
     skillRepository.delete(skill);

@@ -4,8 +4,6 @@ import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.model.Category;
 import com.antiprocrastinate.lab.model.Skill;
 import com.antiprocrastinate.lab.repository.CategoryRepository;
-import java.util.HashSet;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,10 +37,9 @@ public class CategoryService {
     Category category = categoryRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
 
-    Set<Skill> skills = new HashSet<>(category.getSkills());
-    for (Skill skill : skills) {
-      skillService.deleteById(skill.getId());
-    }
+    category.getSkills().stream()
+        .map(Skill::getId)
+        .forEach(skillService::deleteById);
 
     categoryRepository.delete(category);
   }
