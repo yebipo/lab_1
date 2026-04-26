@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.BatchSize;
 
 @Entity
@@ -28,10 +29,12 @@ public class Skill {
   private String name;
   private String iconUrl;
 
+  @ToString.Exclude
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "category_id")
   private Category category;
 
+  @ToString.Exclude
   @BatchSize(size = 20)
   @ManyToMany(mappedBy = "skills")
   private Set<Task> tasks = new HashSet<>();

@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.BatchSize;
 
 @Entity
@@ -28,6 +29,7 @@ public class Category {
   private String description;
   private String iconUrl;
 
+  @ToString.Exclude
   @BatchSize(size = 20)
   @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<Skill> skills = new HashSet<>();

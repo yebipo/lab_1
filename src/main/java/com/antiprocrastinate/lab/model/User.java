@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.BatchSize;
 
 @Entity
@@ -30,6 +31,7 @@ public class User {
   private Integer dailyGoalMinutes;
   private String avatarUrl;
 
+  @ToString.Exclude
   @BatchSize(size = 20)
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
   private Set<Task> tasks = new HashSet<>();

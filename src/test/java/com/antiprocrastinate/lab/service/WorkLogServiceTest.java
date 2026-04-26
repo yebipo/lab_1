@@ -11,7 +11,6 @@ import com.antiprocrastinate.lab.repository.WorkLogRepository;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,7 +22,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Тестирование WorkLogService")
 class WorkLogServiceTest {
 
   @Mock
@@ -43,17 +41,6 @@ class WorkLogServiceTest {
   }
 
   @Test
-  @DisplayName("Конструктор должен обрабатывать null")
-  void constructorShouldCheckNull() {
-    try {
-      new WorkLogService(null);
-    } catch (NullPointerException | IllegalArgumentException e) {
-      assertThat(e).isNotNull();
-    }
-  }
-
-  @Test
-  @DisplayName("Должен находить все записи")
   void shouldFindAll() {
     Page<WorkLog> page = new PageImpl<>(List.of(testWorkLog));
     when(workLogRepository.findAll(pageable)).thenReturn(page);
@@ -62,7 +49,6 @@ class WorkLogServiceTest {
   }
 
   @Test
-  @DisplayName("Должен находить запись по ID")
   void shouldFindById() {
     when(workLogRepository.findById(1L)).thenReturn(Optional.of(testWorkLog));
     WorkLog result = workLogService.findById(1L);
@@ -70,7 +56,6 @@ class WorkLogServiceTest {
   }
 
   @Test
-  @DisplayName("Должен выбрасывать исключение, если лог работы не найден")
   void shouldThrowWhenNotFound() {
     when(workLogRepository.findById(999L)).thenReturn(Optional.empty());
     assertThatThrownBy(() -> workLogService.findById(999L))
@@ -78,7 +63,6 @@ class WorkLogServiceTest {
   }
 
   @Test
-  @DisplayName("Должен сохранять лог работы")
   void shouldSave() {
     when(workLogRepository.save(any(WorkLog.class))).thenReturn(testWorkLog);
     workLogService.save(testWorkLog);
@@ -86,7 +70,6 @@ class WorkLogServiceTest {
   }
 
   @Test
-  @DisplayName("Должен удалять лог работы по ID")
   void shouldDeleteById() {
     workLogService.deleteById(1L);
     verify(workLogRepository).deleteById(1L);

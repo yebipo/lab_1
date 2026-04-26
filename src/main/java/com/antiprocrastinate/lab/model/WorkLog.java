@@ -11,6 +11,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Entity
 @Table(name = "work_logs")
@@ -27,6 +28,7 @@ public class WorkLog {
   private Integer interruptionCount;
   private LocalDateTime createdAt = LocalDateTime.now();
 
+  @ToString.Exclude
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "task_id")
   private Task task;

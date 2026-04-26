@@ -41,6 +41,8 @@ public class SkillService {
     Skill skill = skillRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Skill not found with id: " + id));
 
+    skill.getTasks().forEach(task -> task.getSkills().remove(skill));
+
     Map<Boolean, List<Task>> partitionedTasks = skill.getTasks().stream()
         .collect(Collectors.partitioningBy(task -> task.getSkills().isEmpty()));
 

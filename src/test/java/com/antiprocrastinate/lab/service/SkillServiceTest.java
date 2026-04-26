@@ -14,8 +14,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,7 +27,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Тестирование SkillService")
 class SkillServiceTest {
 
   @Mock
@@ -51,17 +50,6 @@ class SkillServiceTest {
   }
 
   @Test
-  @DisplayName("Конструктор должен обрабатывать null")
-  void constructorShouldCheckNull() {
-    try {
-      new SkillService(null, null);
-    } catch (NullPointerException | IllegalArgumentException e) {
-      assertThat(e).isNotNull();
-    }
-  }
-
-  @Test
-  @DisplayName("Должен находить все записи")
   void shouldFindAll() {
     Page<Skill> page = new PageImpl<>(List.of(testSkill));
     when(skillRepository.findAll(pageable)).thenReturn(page);
@@ -70,7 +58,6 @@ class SkillServiceTest {
   }
 
   @Test
-  @DisplayName("Должен находить запись по ID")
   void shouldFindById() {
     when(skillRepository.findById(1L)).thenReturn(Optional.of(testSkill));
     Skill result = skillService.findById(1L);
@@ -78,7 +65,6 @@ class SkillServiceTest {
   }
 
   @Test
-  @DisplayName("Должен выбрасывать исключение, если скилл не найден")
   void shouldThrowWhenNotFound() {
     when(skillRepository.findById(999L)).thenReturn(Optional.empty());
     assertThatThrownBy(() -> skillService.findById(999L))
@@ -86,7 +72,6 @@ class SkillServiceTest {
   }
 
   @Test
-  @DisplayName("Должен сохранять скилл")
   void shouldSave() {
     when(skillRepository.save(any(Skill.class))).thenReturn(testSkill);
     skillService.save(testSkill);
@@ -94,7 +79,6 @@ class SkillServiceTest {
   }
 
   @Test
-  @DisplayName("Должен удалять скилл и корректно обновлять/удалять связанные задачи")
   void shouldDeleteSkillAndHandleRelatedTasks() {
     Task task1 = new Task();
     task1.setId(10L);
@@ -106,25 +90,24 @@ class SkillServiceTest {
     otherSkill.setId(2L);
     task2.setSkills(new HashSet<>(Set.of(testSkill, otherSkill)));
 
-    testSkill.setTasks(Set.of(task1, task2));
+    testSkill.setTasks(new HashSet<>(Set.of(task1, task2)));
 
     when(skillRepository.findById(1L)).thenReturn(Optional.of(testSkill));
 
     skillService.deleteById(1L);
 
-    verify(taskRepository).delete(task1);
-    verify(taskRepository).save(task2);
+    verify(taskRepository).deleteAll(argThat(it ->
+        StreamSupport.stream(it.spliterator(), false).anyMatch(t -> t.equals(task1))));
+    verify(taskRepository).saveAll(argThat(it ->
+        StreamSupport.stream(it.spliterator(), false).anyMatch(t -> t.equals(task2))));
     verify(skillRepository).delete(testSkill);
   }
 
   @Test
-  @DisplayName("Должен выбрасывать исключение при попытке удалить несуществующий скилл")
   void shouldThrowExceptionWhenDeletingNonExistentSkill() {
     when(skillRepository.findById(999L)).thenReturn(Optional.empty());
-
     assertThatThrownBy(() -> skillService.deleteById(999L))
         .isInstanceOf(ResourceNotFoundException.class);
-
     verify(skillRepository, never()).delete(any());
   }
 }

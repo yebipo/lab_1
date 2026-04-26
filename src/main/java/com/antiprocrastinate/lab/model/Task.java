@@ -21,6 +21,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.OnDelete;
@@ -50,6 +51,7 @@ public class Task {
   @Builder.Default
   private TaskStatus status = TaskStatus.TODO;
 
+  @ToString.Exclude
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id")
   private User user;
@@ -63,10 +65,12 @@ public class Task {
   )
   @OnDelete(action = OnDeleteAction.CASCADE)
   @Builder.Default
+  @ToString.Exclude
   private Set<Skill> skills = new HashSet<>();
 
   @BatchSize(size = 20)
   @OneToMany(mappedBy = "task", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
   @Builder.Default
+  @ToString.Exclude
   private Set<WorkLog> workLogs = new HashSet<>();
 }
