@@ -62,9 +62,11 @@ public class Task {
       inverseJoinColumns = @JoinColumn(name = "skill_id")
   )
   @OnDelete(action = OnDeleteAction.CASCADE)
+  @Builder.Default
   private Set<Skill> skills = new HashSet<>();
 
   @BatchSize(size = 20)
   @OneToMany(mappedBy = "task", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+  @Builder.Default
   private Set<WorkLog> workLogs = new HashSet<>();
 }
