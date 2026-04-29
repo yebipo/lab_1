@@ -4,14 +4,11 @@ import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.model.Task;
 import com.antiprocrastinate.lab.repository.TaskRepository;
 import com.antiprocrastinate.lab.util.TaskSearchKey;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,14 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class TaskService {
   private final TaskRepository taskRepo;
-  private TaskService self;
 
   private final Map<TaskSearchKey, Page<Task>> taskIndex = new HashMap<>();
-
-  @Autowired
-  public void setSelf(@Lazy TaskService self) {
-    this.self = self;
-  }
 
   @Transactional(readOnly = true)
   public Page<Task> findAll(Pageable pageable) {
@@ -50,6 +41,13 @@ public class TaskService {
   }
 
   @Transactional
+  public List<Task> saveAll(List<Task> tasks) {
+    List<Task> savedTasks = taskRepo.saveAll(tasks);
+    invalidateIndex();
+    return savedTasks;
+  }
+
+  @Transactional
   public void deleteById(Long id) {
     Task task = taskRepo.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException(
@@ -59,28 +57,8 @@ public class TaskService {
   }
 
   @Transactional
-  public void saveMultipleWithTransaction(List<Task> tasks) {
-    tasks.forEach(this::save);
-  }
-
-  public Map<String, List<String>> saveMultipleWithoutTransaction(List<Task> tasks) {
-    List<String> saved = new ArrayList<>();
-    List<String> failed = new ArrayList<>();
-
-    tasks.forEach(task -> {
-      try {
-        self.save(task);
-        saved.add(task.getTitle());
-      } catch (Exception e) {
-        log.warn("Ошибка при сохранении задачи: {}", task.getTitle(), e);
-        failed.add("Задача '" + task.getTitle() + "': " + e.getMessage());
-      }
-    });
-
-    Map<String, List<String>> report = new HashMap<>();
-    report.put("saved", saved);
-    report.put("failed", failed);
-    return report;
+  public void deleteAll(List<Long> ids) {
+    ids.forEach(this::deleteById);
   }
 
   @Transactional(readOnly = true)

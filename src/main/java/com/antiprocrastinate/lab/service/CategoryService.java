@@ -4,6 +4,7 @@ import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.model.Category;
 import com.antiprocrastinate.lab.model.Skill;
 import com.antiprocrastinate.lab.repository.CategoryRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +34,11 @@ public class CategoryService {
   }
 
   @Transactional
+  public List<Category> saveAll(List<Category> categories) {
+    return categoryRepository.saveAll(categories);
+  }
+
+  @Transactional
   public void deleteById(Long id) {
     Category category = categoryRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
@@ -42,5 +48,10 @@ public class CategoryService {
         .forEach(skillService::deleteById);
 
     categoryRepository.delete(category);
+  }
+
+  @Transactional
+  public void deleteAll(List<Long> ids) {
+    ids.forEach(this::deleteById);
   }
 }

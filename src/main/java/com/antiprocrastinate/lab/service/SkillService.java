@@ -37,6 +37,11 @@ public class SkillService {
   }
 
   @Transactional
+  public List<Skill> saveAll(List<Skill> skills) {
+    return skillRepository.saveAll(skills);
+  }
+
+  @Transactional
   public void deleteById(Long id) {
     Skill skill = skillRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Skill not found with id: " + id));
@@ -55,5 +60,10 @@ public class SkillService {
     }
 
     skillRepository.delete(skill);
+  }
+
+  @Transactional
+  public void deleteAll(List<Long> ids) {
+    ids.forEach(this::deleteById);
   }
 }

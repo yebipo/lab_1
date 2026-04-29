@@ -3,6 +3,7 @@ package com.antiprocrastinate.lab.service;
 import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.model.WorkLog;
 import com.antiprocrastinate.lab.repository.WorkLogRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +32,17 @@ public class WorkLogService {
   }
 
   @Transactional
+  public List<WorkLog> saveAll(List<WorkLog> workLogs) {
+    return workLogRepository.saveAll(workLogs);
+  }
+
+  @Transactional
   public void deleteById(Long id) {
     workLogRepository.deleteById(id);
+  }
+
+  @Transactional
+  public void deleteAll(List<Long> ids) {
+    workLogRepository.deleteAllByIdInBatch(ids);
   }
 }

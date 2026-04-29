@@ -3,6 +3,7 @@ package com.antiprocrastinate.lab.service;
 import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.model.User;
 import com.antiprocrastinate.lab.repository.UserRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +32,17 @@ public class UserService {
   }
 
   @Transactional
+  public List<User> saveAll(List<User> users) {
+    return userRepository.saveAll(users);
+  }
+
+  @Transactional
   public void deleteById(Long id) {
     userRepository.deleteById(id);
+  }
+
+  @Transactional
+  public void deleteAll(List<Long> ids) {
+    userRepository.deleteAllByIdInBatch(ids);
   }
 }
