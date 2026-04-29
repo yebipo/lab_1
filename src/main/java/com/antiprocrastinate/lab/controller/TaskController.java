@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -94,20 +95,26 @@ public class TaskController {
       taskService.saveMultipleWithTransaction(tasks);
       return ResponseEntity.ok("Success");
     } catch (Exception e) {
-      return ResponseEntity.badRequest().body(e.getMessage());
+      return ResponseEntity.badRequest()
+          .body("Ошибка транзакции: ни одна задача не сохранена. Причина: " + e.getMessage());
     }
   }
 
   @PostMapping("/bulk-non-transactional")
   @Operation(summary = "Массовое создание задач (без транзакции)")
-  public ResponseEntity<String> createBulkNonTransactional(
+  public ResponseEntity<Object> createBulkNonTransactional(
       @Valid @RequestBody List<TaskDto> taskDtos) {
     try {
       List<Task> tasks = taskDtos.stream().map(taskMapper::toEntity).toList();
-      taskService.saveMultipleWithoutTransaction(tasks);
+      Map<String, List<String>> report = taskService.saveMultipleWithoutTransaction(tasks);
+      if (!report.get("failed").isEmpty()) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(report);
+      }
+
       return ResponseEntity.ok("Success");
     } catch (Exception e) {
-      return ResponseEntity.badRequest().body(e.getMessage());
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("Критическая ошибка сервера: " + e.getMessage());
     }
   }
 }

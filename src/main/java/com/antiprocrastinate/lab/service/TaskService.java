@@ -4,6 +4,7 @@ import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.model.Task;
 import com.antiprocrastinate.lab.repository.TaskRepository;
 import com.antiprocrastinate.lab.util.TaskSearchKey;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,14 +63,24 @@ public class TaskService {
     tasks.forEach(this::save);
   }
 
-  public void saveMultipleWithoutTransaction(List<Task> tasks) {
+  public Map<String, List<String>> saveMultipleWithoutTransaction(List<Task> tasks) {
+    List<String> saved = new ArrayList<>();
+    List<String> failed = new ArrayList<>();
+
     tasks.forEach(task -> {
       try {
         self.save(task);
+        saved.add(task.getTitle());
       } catch (Exception e) {
-        log.warn("Error saving task: {}", task.getId(), e);
+        log.warn("Ошибка при сохранении задачи: {}", task.getTitle(), e);
+        failed.add("Задача '" + task.getTitle() + "': " + e.getMessage());
       }
     });
+
+    Map<String, List<String>> report = new HashMap<>();
+    report.put("saved", saved);
+    report.put("failed", failed);
+    return report;
   }
 
   @Transactional(readOnly = true)
