@@ -14,21 +14,21 @@ public class AsyncJobService {
   private final Map<String, String> jobStatuses = new ConcurrentHashMap<>();
 
   @Async
-  public void processLongTask(String taskId, Long duration) {
-    jobStatuses.put(taskId, "IN_PROGRESS");
-    log.info("Task {} started with duration {} ms", taskId, duration);
+  public void processLongTask(String jobId, Long durationMs) {
+    jobStatuses.put(jobId, "IN_PROGRESS");
+    log.info("Job {} started with duration {} ms", jobId, durationMs);
     try {
-      TimeUnit.MILLISECONDS.sleep(duration);
-      jobStatuses.put(taskId, "COMPLETED");
-      log.info("Task {} completed", taskId);
+      TimeUnit.MILLISECONDS.sleep(durationMs);
+      jobStatuses.put(jobId, "COMPLETED");
+      log.info("Job {} completed", jobId);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      jobStatuses.put(taskId, "FAILED");
-      log.error("Task {} interrupted", taskId);
+      jobStatuses.put(jobId, "FAILED");
+      log.error("Job {} interrupted", jobId);
     }
   }
 
-  public String getStatus(String taskId) {
-    return jobStatuses.getOrDefault(taskId, "NOT_FOUND");
+  public String getStatus(String jobId) {
+    return jobStatuses.getOrDefault(jobId, "NOT_FOUND");
   }
 }

@@ -18,40 +18,40 @@ class AsyncJobServiceTest {
 
   @Test
   void shouldProcessLongTaskSuccessfully() {
-    String taskId = "task-1";
+    String jobId = "job-1";
 
-    Thread taskThread = new Thread(() -> asyncJobService.processLongTask(taskId, 100L));
+    Thread taskThread = new Thread(() -> asyncJobService.processLongTask(jobId, 100L));
     taskThread.start();
 
     await().atMost(Duration.ofSeconds(1)).untilAsserted(() ->
-        assertThat(asyncJobService.getStatus(taskId)).isIn("IN_PROGRESS", "COMPLETED")
+        assertThat(asyncJobService.getStatus(jobId)).isIn("IN_PROGRESS", "COMPLETED")
     );
 
     await().atMost(Duration.ofSeconds(2)).untilAsserted(() ->
-        assertThat(asyncJobService.getStatus(taskId)).isEqualTo("COMPLETED")
+        assertThat(asyncJobService.getStatus(jobId)).isEqualTo("COMPLETED")
     );
   }
 
   @Test
   void shouldHandleInterruptedException() {
-    String taskId = "task-2";
+    String jobId = "job-2";
 
-    Thread taskThread = new Thread(() -> asyncJobService.processLongTask(taskId, 5000L));
+    Thread taskThread = new Thread(() -> asyncJobService.processLongTask(jobId, 5000L));
     taskThread.start();
 
     await().atMost(Duration.ofSeconds(1)).untilAsserted(() ->
-        assertThat(asyncJobService.getStatus(taskId)).isEqualTo("IN_PROGRESS")
+        assertThat(asyncJobService.getStatus(jobId)).isEqualTo("IN_PROGRESS")
     );
 
     taskThread.interrupt();
 
     await().atMost(Duration.ofSeconds(2)).untilAsserted(() ->
-        assertThat(asyncJobService.getStatus(taskId)).isEqualTo("FAILED")
+        assertThat(asyncJobService.getStatus(jobId)).isEqualTo("FAILED")
     );
   }
 
   @Test
   void shouldReturnNotFoundForUnknownTask() {
-    assertThat(asyncJobService.getStatus("unknown-task")).isEqualTo("NOT_FOUND");
+    assertThat(asyncJobService.getStatus("unknown-job")).isEqualTo("NOT_FOUND");
   }
 }
