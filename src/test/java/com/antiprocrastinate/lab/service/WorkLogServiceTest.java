@@ -3,7 +3,8 @@ package com.antiprocrastinate.lab.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.model.WorkLog;
@@ -73,5 +74,22 @@ class WorkLogServiceTest {
   void shouldDeleteById() {
     workLogService.deleteById(1L);
     verify(workLogRepository).deleteById(1L);
+  }
+
+  @Test
+  void shouldSaveAll() {
+    List<WorkLog> logs = List.of(testWorkLog);
+    when(workLogRepository.saveAll(logs)).thenReturn(logs);
+
+    List<WorkLog> result = workLogService.saveAll(logs);
+    assertThat(result).hasSize(1);
+    verify(workLogRepository).saveAll(logs);
+  }
+
+  @Test
+  void shouldDeleteAll() {
+    List<Long> ids = List.of(1L, 2L);
+    workLogService.deleteAll(ids);
+    verify(workLogRepository).deleteAllByIdInBatch(ids);
   }
 }

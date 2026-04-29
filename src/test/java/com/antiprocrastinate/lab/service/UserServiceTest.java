@@ -3,7 +3,8 @@ package com.antiprocrastinate.lab.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.model.User;
@@ -73,5 +74,22 @@ class UserServiceTest {
   void shouldDeleteById() {
     userService.deleteById(1L);
     verify(userRepository).deleteById(1L);
+  }
+
+  @Test
+  void shouldSaveAll() {
+    List<User> users = List.of(testUser);
+    when(userRepository.saveAll(users)).thenReturn(users);
+
+    List<User> result = userService.saveAll(users);
+    assertThat(result).hasSize(1);
+    verify(userRepository).saveAll(users);
+  }
+
+  @Test
+  void shouldDeleteAll() {
+    List<Long> ids = List.of(1L, 2L);
+    userService.deleteAll(ids);
+    verify(userRepository).deleteAllByIdInBatch(ids);
   }
 }

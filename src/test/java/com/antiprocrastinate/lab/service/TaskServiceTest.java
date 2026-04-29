@@ -3,7 +3,10 @@ package com.antiprocrastinate.lab.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.model.Task;
@@ -16,6 +19,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -30,18 +34,14 @@ class TaskServiceTest {
   @Mock
   private TaskRepository taskRepository;
 
-  @Mock
-  private TaskService selfMock;
-
+  @InjectMocks
   private TaskService taskService;
+
   private Task testTask;
   private Pageable pageable;
 
   @BeforeEach
   void setUp() {
-    taskService = new TaskService(taskRepository);
-    taskService.setSelf(selfMock);
-
     testTask = Task.builder()
         .id(1L)
         .title("Написать тесты")
@@ -91,7 +91,9 @@ class TaskServiceTest {
   @DisplayName("Успешное удаление и инвалидация кэша")
   void shouldDeleteTaskById() {
     when(taskRepository.findById(1L)).thenReturn(Optional.of(testTask));
+
     taskService.deleteById(1L);
+
     verify(taskRepository).delete(testTask);
   }
 
@@ -99,30 +101,39 @@ class TaskServiceTest {
   @DisplayName("Выброс ошибки при удалении несуществующей задачи")
   void shouldThrowWhenDeletingNonExistentTask() {
     when(taskRepository.findById(99L)).thenReturn(Optional.empty());
+
     assertThatThrownBy(() -> taskService.deleteById(99L))
         .isInstanceOf(ResourceNotFoundException.class)
         .hasMessageContaining("Cannot delete: Task not found with id: 99");
   }
 
   @Test
-  @DisplayName("Транзакционное массовое сохранение")
-  void shouldSaveMultipleWithTransaction() {
-    taskService.saveMultipleWithTransaction(List.of(testTask, testTask));
-    verify(taskRepository, times(2)).save(any(Task.class));
+  @DisplayName("Массовое сохранение (saveAll)")
+  void shouldSaveAll() {
+    List<Task> tasks = List.of(testTask, testTask);
+    when(taskRepository.saveAll(tasks)).thenReturn(tasks);
+
+    List<Task> result = taskService.saveAll(tasks);
+    assertThat(result).hasSize(2);
+    verify(taskRepository).saveAll(tasks);
   }
 
   @Test
-  @DisplayName("Нетранзакционное массовое сохранение (успех и ошибка)")
-  void shouldSaveMultipleWithoutTransactionAndCatchException() {
-    Task failTask = Task.builder().id(2L).title("Падающая задача").build();
+  @DisplayName("Массовое удаление (deleteAll)")
+  void shouldDeleteAll() {
+    Task testTask2 = Task.builder()
+        .id(2L)
+        .title("Вторая задача")
+        .status(TaskStatus.TODO)
+        .build();
 
-    when(selfMock.save(testTask)).thenReturn(testTask);
-    when(selfMock.save(failTask)).thenThrow(new RuntimeException("DB Error"));
+    when(taskRepository.findById(1L)).thenReturn(Optional.of(testTask));
+    when(taskRepository.findById(2L)).thenReturn(Optional.of(testTask2));
 
-    taskService.saveMultipleWithoutTransaction(List.of(testTask, failTask));
+    taskService.deleteAll(List.of(1L, 2L));
 
-    verify(selfMock, times(1)).save(testTask);
-    verify(selfMock, times(1)).save(failTask);
+    verify(taskRepository).delete(testTask);
+    verify(taskRepository).delete(testTask2);
   }
 
   @Nested

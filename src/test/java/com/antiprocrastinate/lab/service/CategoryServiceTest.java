@@ -3,7 +3,10 @@ package com.antiprocrastinate.lab.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.model.Category;
@@ -100,5 +103,25 @@ class CategoryServiceTest {
     assertThatThrownBy(() -> categoryService.deleteById(999L))
         .isInstanceOf(ResourceNotFoundException.class);
     verify(categoryRepository, never()).delete(any());
+  }
+
+  @Test
+  void shouldSaveAll() {
+    List<Category> categories = List.of(testCategory);
+    when(categoryRepository.saveAll(categories)).thenReturn(categories);
+
+    List<Category> result = categoryService.saveAll(categories);
+    assertThat(result).hasSize(1);
+    verify(categoryRepository).saveAll(categories);
+  }
+
+  @Test
+  void shouldDeleteAll() {
+    when(categoryRepository.findById(1L)).thenReturn(Optional.of(testCategory));
+    when(categoryRepository.findById(2L)).thenReturn(Optional.of(testCategory));
+
+    categoryService.deleteAll(List.of(1L, 2L));
+
+    verify(categoryRepository, times(2)).delete(testCategory);
   }
 }

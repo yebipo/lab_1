@@ -3,7 +3,10 @@ package com.antiprocrastinate.lab.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.model.Skill;
@@ -162,5 +165,27 @@ class SkillServiceTest {
     assertThatThrownBy(() -> skillService.deleteById(999L))
         .isInstanceOf(ResourceNotFoundException.class)
         .hasMessageContaining("Skill not found");
+  }
+
+  @Test
+  @DisplayName("Массовое сохранение навыков (saveAll)")
+  void shouldSaveAll() {
+    List<Skill> skills = List.of(testSkill);
+    when(skillRepository.saveAll(skills)).thenReturn(skills);
+
+    List<Skill> result = skillService.saveAll(skills);
+    assertThat(result).hasSize(1);
+    verify(skillRepository).saveAll(skills);
+  }
+
+  @Test
+  @DisplayName("Массовое удаление навыков (deleteAll)")
+  void shouldDeleteAll() {
+    when(skillRepository.findById(1L)).thenReturn(Optional.of(testSkill));
+    when(skillRepository.findById(2L)).thenReturn(Optional.of(testSkill));
+
+    skillService.deleteAll(List.of(1L, 2L));
+
+    verify(skillRepository, times(2)).delete(testSkill);
   }
 }
