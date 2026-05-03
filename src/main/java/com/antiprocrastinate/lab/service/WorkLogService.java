@@ -7,6 +7,8 @@ import com.antiprocrastinate.lab.mapper.WorkLogMapper;
 import com.antiprocrastinate.lab.model.WorkLog;
 import com.antiprocrastinate.lab.repository.WorkLogRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ public class WorkLogService {
     return workLogRepository.findAll(pageable).map(workLogMapper::toResponseDto);
   }
 
+  @Cacheable(value = "worklog_item", key = "#id")
   @Transactional(readOnly = true)
   public WorkLogResponseDto findById(Long id) {
     return workLogRepository.findById(id)
@@ -35,6 +38,7 @@ public class WorkLogService {
     return workLogMapper.toResponseDto(workLogRepository.save(workLogMapper.toEntity(dto)));
   }
 
+  @CacheEvict(value = "worklog_item", key = "#id")
   @Transactional
   public WorkLogResponseDto update(Long id, WorkLogCreateDto dto) {
     WorkLog existing = workLogRepository.findById(id)
@@ -43,6 +47,7 @@ public class WorkLogService {
     return workLogMapper.toResponseDto(workLogRepository.save(existing));
   }
 
+  @CacheEvict(value = "worklog_item", key = "#id")
   @Transactional
   public void deleteById(Long id) {
     workLogRepository.deleteById(id);

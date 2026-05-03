@@ -10,5 +10,7 @@
     <include file="db/changelog/changesets/003_convert_status_to_enum.sql"/>
     <include file="db/changelog/changesets/004_add_user_password.sql"/>
     <include file="db/changelog/changesets/005_add_soft_delete.sql"/>
+    <include file="db/changelog/changesets/006_add_user_roles.sql"/>
+    <include file="db/changelog/changesets/006_constraints_and_soft_delete.sql"/>
 
 </databaseChangeLog>

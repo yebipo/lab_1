@@ -2,8 +2,9 @@ package com.antiprocrastinate.lab.config.security;
 
 import com.antiprocrastinate.lab.model.User;
 import com.antiprocrastinate.lab.repository.UserRepository;
-import java.util.Collections;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,7 +23,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     return new org.springframework.security.core.userdetails.User(
         user.getUsername(),
         user.getPassword(),
-        Collections.emptyList()
+        List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
     );
   }
 }

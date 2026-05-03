@@ -7,6 +7,8 @@ import com.antiprocrastinate.lab.mapper.SkillMapper;
 import com.antiprocrastinate.lab.model.Skill;
 import com.antiprocrastinate.lab.repository.SkillRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ public class SkillService {
   private final SkillRepository skillRepository;
   private final SkillMapper skillMapper;
 
+  @Cacheable("skill_item")
   @Transactional(readOnly = true)
   public Page<SkillResponseDto> findAll(Pageable pageable) {
     return skillRepository.findAll(pageable).map(skillMapper::toResponseDto);
@@ -30,11 +33,13 @@ public class SkillService {
         .orElseThrow(() -> new ResourceNotFoundException("Skill not found: " + id));
   }
 
+  @CacheEvict(value = "skill_item", allEntries = true)
   @Transactional
   public SkillResponseDto create(SkillCreateDto dto) {
     return skillMapper.toResponseDto(skillRepository.save(skillMapper.toEntity(dto)));
   }
 
+  @CacheEvict(value = "skill_item", allEntries = true)
   @Transactional
   public SkillResponseDto update(Long id, SkillCreateDto dto) {
     Skill existing = skillRepository.findById(id)
@@ -43,6 +48,7 @@ public class SkillService {
     return skillMapper.toResponseDto(skillRepository.save(existing));
   }
 
+  @CacheEvict(value = "skill_item", allEntries = true)
   @Transactional
   public void deleteById(Long id) {
     skillRepository.deleteById(id);

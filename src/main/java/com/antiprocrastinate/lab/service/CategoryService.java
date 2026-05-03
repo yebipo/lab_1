@@ -7,6 +7,8 @@ import com.antiprocrastinate.lab.mapper.CategoryMapper;
 import com.antiprocrastinate.lab.model.Category;
 import com.antiprocrastinate.lab.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ public class CategoryService {
   private final CategoryRepository categoryRepository;
   private final CategoryMapper categoryMapper;
 
+  @Cacheable("category_item")
   @Transactional(readOnly = true)
   public Page<CategoryResponseDto> findAll(Pageable pageable) {
     return categoryRepository.findAll(pageable).map(categoryMapper::toResponseDto);
@@ -30,11 +33,13 @@ public class CategoryService {
         .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + id));
   }
 
+  @CacheEvict(value = "category_item", allEntries = true)
   @Transactional
   public CategoryResponseDto create(CategoryCreateDto dto) {
     return categoryMapper.toResponseDto(categoryRepository.save(categoryMapper.toEntity(dto)));
   }
 
+  @CacheEvict(value = "category_item", allEntries = true)
   @Transactional
   public CategoryResponseDto update(Long id, CategoryCreateDto dto) {
     Category existing = categoryRepository.findById(id)
@@ -43,6 +48,7 @@ public class CategoryService {
     return categoryMapper.toResponseDto(categoryRepository.save(existing));
   }
 
+  @CacheEvict(value = "category_item", allEntries = true)
   @Transactional
   public void deleteById(Long id) {
     categoryRepository.deleteById(id);

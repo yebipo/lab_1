@@ -24,24 +24,32 @@ public class TaskService {
   private final TaskMapper taskMapper;
   private final UserRepository userRepository;
 
+  // SonarQube: выносим дублирующуюся строку в константу
+  private static final String TASK_NOT_FOUND_MSG = "Task not found or access denied: ";
+
+  private User getCurrentUser() {
+    String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    return userRepository.findByUsername(username)
+        .orElseThrow(() -> new ResourceNotFoundException("Ошибка сессии пользователя"));
+  }
+
   @Transactional(readOnly = true)
   public Page<TaskResponseDto> findAll(Pageable pageable) {
-    return taskRepo.findAll(pageable).map(taskMapper::toResponseDto);
+    Long userId = getCurrentUser().getId();
+    return taskRepo.findAllByUserId(userId, pageable).map(taskMapper::toResponseDto);
   }
 
   @Transactional(readOnly = true)
   public TaskResponseDto findById(Long id) {
-    return taskRepo.findById(id)
+    Long userId = getCurrentUser().getId();
+    return taskRepo.findByIdAndUserId(id, userId)
         .map(taskMapper::toResponseDto)
-        .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException(TASK_NOT_FOUND_MSG + id));
   }
 
   @Transactional
   public TaskResponseDto create(TaskCreateDto dto) {
-    String username = SecurityContextHolder.getContext().getAuthentication().getName();
-    User currentUser = userRepository.findByUsername(username)
-        .orElseThrow(() -> new ResourceNotFoundException("User session error"));
-
+    User currentUser = getCurrentUser();
     Task task = taskMapper.toEntity(dto);
     task.setUser(currentUser);
 
@@ -50,24 +58,33 @@ public class TaskService {
 
   @Transactional
   public TaskResponseDto update(Long id, TaskCreateDto dto) {
-    Task existing = taskRepo.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + id));
+    Long userId = getCurrentUser().getId();
+    Task existing = taskRepo.findByIdAndUserId(id, userId)
+        .orElseThrow(() -> new ResourceNotFoundException(TASK_NOT_FOUND_MSG + id));
     taskMapper.updateEntity(dto, existing);
     return taskMapper.toResponseDto(taskRepo.save(existing));
   }
 
   @Transactional
   public void deleteById(Long id) {
-    taskRepo.deleteById(id);
+    Long userId = getCurrentUser().getId();
+    Task existing = taskRepo.findByIdAndUserId(id, userId)
+        .orElseThrow(() -> new ResourceNotFoundException(TASK_NOT_FOUND_MSG + id));
+    taskRepo.delete(existing);
   }
 
   @Transactional(readOnly = true)
+  // SonarQube: убираем неиспользуемый параметр userId
   public Page<TaskResponseDto> getTasksFiltered(
-      Long userId, Long skillId, String status, String title, Pageable pageable) {
-    Specification<Task> spec = Specification.where(TaskSpecifications.hasUserId(userId))
+      Long skillId, String status, String title, Pageable pageable) {
+
+    Long currentUserId = getCurrentUser().getId();
+
+    Specification<Task> spec = Specification.where(TaskSpecifications.hasUserId(currentUserId))
         .and(TaskSpecifications.hasSkillId(skillId))
         .and(TaskSpecifications.hasStatus(status))
         .and(TaskSpecifications.titleLike(title));
+
     return taskRepo.findAll(spec, pageable).map(taskMapper::toResponseDto);
   }
 }

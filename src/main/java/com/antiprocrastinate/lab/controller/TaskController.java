@@ -37,12 +37,11 @@ public class TaskController {
 
   @GetMapping("/search")
   public PageResponse<TaskResponseDto> search(
-      @RequestParam(required = false) Long userId,
       @RequestParam(required = false) Long skillId,
       @RequestParam(required = false) String status,
       @RequestParam(required = false) String title,
       Pageable pageable) {
-    return PageResponse.of(taskService.getTasksFiltered(userId, skillId, status, title, pageable));
+    return PageResponse.of(taskService.getTasksFiltered(skillId, status, title, pageable));
   }
 
   @PostMapping

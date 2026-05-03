@@ -4,11 +4,11 @@ REST API для управления списком задач и контрол
 
 ## Технологический стек
 
-* **Язык программирования:** Java 25
-* **Фреймворк:** Spring Boot 3 (Spring Web, Spring Data JPA)
+* **Язык программирования:** Java 21
+* **Фреймворк:** Spring Boot 3 (Spring Web, Spring Data JPA, Spring Security, Spring Cache)
 * **Сборка проекта:** Maven
 * **Качество кода:** Checkstyle (Google Style), SonarLint
-* **База данных:** In-Memory Storage (ArrayList)
+* **База данных:** PostgreSQL 15+ + Liquibase (Миграции)
 
 ---
 
@@ -16,21 +16,23 @@ REST API для управления списком задач и контрол
 
 В приложении реализованы следующие методы для работы с задачами:
 
-| Метод | Эндпоинт | Описание | Тип параметра |
-| :--- | :--- | :--- | :--- |
-| **GET** | `/api/tasks` | Получение всех задач | — |
-| **GET** | `/api/tasks/{id}` | Поиск конкретной задачи по ID | `@PathVariable` |
-| **GET** | `/api/tasks/search` | Поиск задач по части названия | `@RequestParam` |
+| Метод    | Эндпоинт             | Описание                                   | Тип параметра   |
+|:---------|:---------------------|:-------------------------------------------|:----------------|
+| **POST** | `/api/auth/register` | Регистрация нового пользователя            | `@RequestBody`  |
+| **POST** | `/api/auth/login`    | Авторизация и получение JWT токена         | `@RequestBody`  |
+| **GET**  | `/api/tasks`         | Получение всех задач текущего пользователя | —               |
+| **GET**  | `/api/tasks/{id}`    | Поиск конкретной задачи пользователя по ID | `@PathVariable` |
+| **GET**  | `/api/tasks/search`  | Поиск задач по части названия / статусу    | `@RequestParam` |
 
 ### Примеры запросов:
-* `GET http://localhost:8080/api/tasks/1`
-* `GET http://localhost:8080/api/tasks/search?title=лаба`
+* `POST http://localhost:8080/api/auth/register`
+* `GET http://localhost:8080/api/tasks/1` (Требует заголовок `Authorization: Bearer <token>`)
 
 ---
 
 ## Модель данных (JSON)
 
-Все ответы сервера приходят в формате JSON. Пример объекта `TaskDto`:
+Все ответы сервера приходят в формате JSON. Пример объекта `TaskResponseDto`:
 
 ```json
 {
@@ -38,5 +40,7 @@ REST API для управления списком задач и контрол
   "title": "Сдать вторую лабу",
   "description": "Подготовить ответы на вопросы по теории и почистить код",
   "focusScore": 85,
-  "status": "ACTIVE"
+  "status": "ACTIVE",
+  "userId": 1,
+  "skillIds": [2, 5]
 }

@@ -19,13 +19,21 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
   private final JwtAuthenticationFilter jwtAuthFilter;
+  private final JwtAuthenticationEntryPoint jwtAuthEntryPoint;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
+        .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthEntryPoint))
         .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+            .requestMatchers(
+                "/api/auth/**",
+                "/swagger-ui/**",
+                "/swagger-ui.html",
+                "/v3/api-docs/**",
+                "/api-docs/**"      // <-- Вот это решит проблему
+            ).permitAll()
             .anyRequest().authenticated()
         );
 

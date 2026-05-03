@@ -12,11 +12,15 @@ import java.time.LocalDateTime;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "work_logs")
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@SQLDelete(sql = "UPDATE work_logs SET deleted = true WHERE id = ?")
+@SQLRestriction("deleted = false")
 public class WorkLog {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,6 +32,8 @@ public class WorkLog {
   private String comment;
   private Integer interruptionCount;
   private LocalDateTime createdAt = LocalDateTime.now();
+
+  private boolean deleted = false;
 
   @ToString.Exclude
   @ManyToOne(fetch = FetchType.LAZY)
