@@ -9,9 +9,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,12 +35,9 @@ public class TaskController {
   private final TaskMapper taskMapper;
 
   @GetMapping
-  @Operation(summary = "Получить все задачи (с пагинацией)")
-  public Page<TaskDto> getAll(
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "10") int size
-  ) {
-    return taskService.findAll(PageRequest.of(page, size)).map(taskMapper::toDto);
+  @Operation(summary = "Получить все задачи (с пагинацией и сортировкой)")
+  public Page<TaskDto> getAll(@ParameterObject @PageableDefault Pageable pageable) {
+    return taskService.findAll(pageable).map(taskMapper::toDto);
   }
 
   @GetMapping("/{id}")
@@ -53,11 +51,9 @@ public class TaskController {
   public Page<TaskDto> search(
       @RequestParam Long userId,
       @RequestParam Long skillId,
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "10") int size,
+      @ParameterObject @PageableDefault Pageable pageable,
       @RequestParam(defaultValue = "false") boolean useNative
   ) {
-    Pageable pageable = PageRequest.of(page, size);
     Page<Task> tasks = taskService.getTasksFiltered(userId, skillId, pageable, useNative);
     return tasks.map(taskMapper::toDto);
   }

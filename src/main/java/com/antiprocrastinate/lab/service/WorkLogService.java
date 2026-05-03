@@ -2,6 +2,7 @@ package com.antiprocrastinate.lab.service;
 
 import com.antiprocrastinate.lab.dto.WorkLogDto;
 import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
+import com.antiprocrastinate.lab.mapper.WorkLogMapper;
 import com.antiprocrastinate.lab.model.WorkLog;
 import com.antiprocrastinate.lab.repository.WorkLogRepository;
 import java.util.List;
@@ -11,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,8 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class WorkLogService {
   private final WorkLogRepository workLogRepository;
+  private final WorkLogMapper workLogMapper;
 
-  @Cacheable(value = "worklogs_page", key = "{#pageable.pageNumber, #pageable.pageSize}")
   @Transactional(readOnly = true)
   public Page<WorkLog> findAll(Pageable pageable) {
     return workLogRepository.findAll(pageable);
@@ -35,32 +35,19 @@ public class WorkLogService {
         .orElseThrow(() -> new ResourceNotFoundException("WorkLog not found with id: " + id));
   }
 
-  @Caching(
-      put = { @CachePut(value = "worklog_item", key = "#result.id") },
-      evict = { @CacheEvict(value = "worklogs_page", allEntries = true) }
-  )
+  @CachePut(value = "worklog_item", key = "#result.id")
   @Transactional
   public WorkLog save(WorkLog workLog) {
     return workLogRepository.save(workLog);
   }
 
-  @Caching(
-      evict = {
-          @CacheEvict(value = "worklog_item", allEntries = true),
-          @CacheEvict(value = "worklogs_page", allEntries = true)
-      }
-  )
+  @CacheEvict(value = "worklog_item", allEntries = true)
   @Transactional
   public List<WorkLog> saveAll(List<WorkLog> workLogs) {
     return workLogRepository.saveAll(workLogs);
   }
 
-  @Caching(
-      evict = {
-          @CacheEvict(value = "worklog_item", allEntries = true),
-          @CacheEvict(value = "worklogs_page", allEntries = true)
-      }
-  )
+  @CacheEvict(value = "worklog_item", allEntries = true)
   @Transactional
   public List<WorkLog> patchBulk(List<WorkLogDto> dtos) {
     List<Long> ids = dtos.stream().map(WorkLogDto::getId).toList();
@@ -71,48 +58,23 @@ public class WorkLogService {
     }
 
     Map<Long, WorkLogDto> dtoMap = dtos.stream()
-        .collect(Collectors.toMap(
-            WorkLogDto::getId, dto -> dto, (existing, replacement) -> replacement));
+        .collect(Collectors.toMap(WorkLogDto::getId, dto -> dto));
 
     existingLogs.forEach(existing -> {
       WorkLogDto dto = dtoMap.get(existing.getId());
-      if (dto.getStartTime() != null) {
-        existing.setStartTime(dto.getStartTime());
-      }
-      if (dto.getEndTime() != null) {
-        existing.setEndTime(dto.getEndTime());
-      }
-      if (dto.getDurationMinutes() != null) {
-        existing.setDurationMinutes(dto.getDurationMinutes());
-      }
-      if (dto.getComment() != null) {
-        existing.setComment(dto.getComment());
-      }
-      if (dto.getInterruptionCount() != null) {
-        existing.setInterruptionCount(dto.getInterruptionCount());
-      }
+      workLogMapper.updateEntityFromDto(dto, existing);
     });
 
     return workLogRepository.saveAll(existingLogs);
   }
 
-  @Caching(
-      evict = {
-          @CacheEvict(value = "worklog_item", key = "#id"),
-          @CacheEvict(value = "worklogs_page", allEntries = true)
-      }
-  )
+  @CacheEvict(value = "worklog_item", key = "#id")
   @Transactional
   public void deleteById(Long id) {
     workLogRepository.deleteById(id);
   }
 
-  @Caching(
-      evict = {
-          @CacheEvict(value = "worklog_item", allEntries = true),
-          @CacheEvict(value = "worklogs_page", allEntries = true)
-      }
-  )
+  @CacheEvict(value = "worklog_item", allEntries = true)
   @Transactional
   public void deleteAll(List<Long> ids) {
     workLogRepository.deleteAllByIdInBatch(ids);

@@ -2,8 +2,8 @@ package com.antiprocrastinate.lab.service;
 
 import com.antiprocrastinate.lab.dto.TaskDto;
 import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
+import com.antiprocrastinate.lab.mapper.TaskMapper;
 import com.antiprocrastinate.lab.model.Task;
-import com.antiprocrastinate.lab.model.TaskStatus;
 import com.antiprocrastinate.lab.repository.TaskRepository;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,8 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class TaskService {
   private final TaskRepository taskRepo;
+  private final TaskMapper taskMapper;
 
-  @Cacheable(value = "tasks_page", key = "{#pageable.pageNumber, #pageable.pageSize}")
   @Transactional(readOnly = true)
   public Page<Task> findAll(Pageable pageable) {
     return taskRepo.findAll(pageable);
@@ -36,32 +35,19 @@ public class TaskService {
         .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + id));
   }
 
-  @Caching(
-      put = { @CachePut(value = "task_item", key = "#result.id") },
-      evict = { @CacheEvict(value = "tasks_page", allEntries = true) }
-  )
+  @CachePut(value = "task_item", key = "#result.id")
   @Transactional
   public Task save(Task task) {
     return taskRepo.save(task);
   }
 
-  @Caching(
-      evict = {
-          @CacheEvict(value = "task_item", allEntries = true),
-          @CacheEvict(value = "tasks_page", allEntries = true)
-      }
-  )
+  @CacheEvict(value = "task_item", allEntries = true)
   @Transactional
   public List<Task> saveAll(List<Task> tasks) {
     return taskRepo.saveAll(tasks);
   }
 
-  @Caching(
-      evict = {
-          @CacheEvict(value = "task_item", allEntries = true),
-          @CacheEvict(value = "tasks_page", allEntries = true)
-      }
-  )
+  @CacheEvict(value = "task_item", allEntries = true)
   @Transactional
   public List<Task> patchBulk(List<TaskDto> dtos) {
     List<Long> ids = dtos.stream().map(TaskDto::getId).toList();
@@ -72,34 +58,17 @@ public class TaskService {
     }
 
     Map<Long, TaskDto> dtoMap = dtos.stream()
-        .collect(Collectors.toMap(
-            TaskDto::getId, dto -> dto, (existing, replacement) -> replacement));
+        .collect(Collectors.toMap(TaskDto::getId, dto -> dto));
 
     existingTasks.forEach(existing -> {
       TaskDto dto = dtoMap.get(existing.getId());
-      if (dto.getTitle() != null) {
-        existing.setTitle(dto.getTitle());
-      }
-      if (dto.getDescription() != null) {
-        existing.setDescription(dto.getDescription());
-      }
-      if (dto.getStatus() != null) {
-        existing.setStatus(TaskStatus.valueOf(dto.getStatus()));
-      }
-      if (dto.getFocusScore() != null) {
-        existing.setFocusScore(dto.getFocusScore());
-      }
+      taskMapper.updateEntityFromDto(dto, existing);
     });
 
     return taskRepo.saveAll(existingTasks);
   }
 
-  @Caching(
-      evict = {
-          @CacheEvict(value = "task_item", key = "#id"),
-          @CacheEvict(value = "tasks_page", allEntries = true)
-      }
-  )
+  @CacheEvict(value = "task_item", key = "#id")
   @Transactional
   public void deleteById(Long id) {
     Task task = taskRepo.findById(id)
@@ -108,19 +77,12 @@ public class TaskService {
     taskRepo.delete(task);
   }
 
-  @Caching(
-      evict = {
-          @CacheEvict(value = "task_item", allEntries = true),
-          @CacheEvict(value = "tasks_page", allEntries = true)
-      }
-  )
+  @CacheEvict(value = "task_item", allEntries = true)
   @Transactional
   public void deleteAll(List<Long> ids) {
     ids.forEach(this::deleteById);
   }
 
-  @Cacheable(value = "tasks_page",
-      key = "{#userId, #skillId, #pageable.pageNumber, #pageable.pageSize, #useNative}")
   @Transactional(readOnly = true)
   public Page<Task> getTasksFiltered(
       Long userId, Long skillId, Pageable pageable, boolean useNative) {

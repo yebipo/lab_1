@@ -2,6 +2,7 @@ package com.antiprocrastinate.lab.service;
 
 import com.antiprocrastinate.lab.dto.UserDto;
 import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
+import com.antiprocrastinate.lab.mapper.UserMapper;
 import com.antiprocrastinate.lab.model.User;
 import com.antiprocrastinate.lab.repository.UserRepository;
 import java.util.List;
@@ -11,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,8 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserService {
   private final UserRepository userRepository;
+  private final UserMapper userMapper;
 
-  @Cacheable(value = "users_page", key = "{#pageable.pageNumber, #pageable.pageSize}")
   @Transactional(readOnly = true)
   public Page<User> findAll(Pageable pageable) {
     return userRepository.findAll(pageable);
@@ -35,32 +35,19 @@ public class UserService {
         .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
   }
 
-  @Caching(
-      put = { @CachePut(value = "user_item", key = "#result.id") },
-      evict = { @CacheEvict(value = "users_page", allEntries = true) }
-  )
+  @CachePut(value = "user_item", key = "#result.id")
   @Transactional
   public User save(User user) {
     return userRepository.save(user);
   }
 
-  @Caching(
-      evict = {
-          @CacheEvict(value = "user_item", allEntries = true),
-          @CacheEvict(value = "users_page", allEntries = true)
-      }
-  )
+  @CacheEvict(value = "user_item", allEntries = true)
   @Transactional
   public List<User> saveAll(List<User> users) {
     return userRepository.saveAll(users);
   }
 
-  @Caching(
-      evict = {
-          @CacheEvict(value = "user_item", allEntries = true),
-          @CacheEvict(value = "users_page", allEntries = true)
-      }
-  )
+  @CacheEvict(value = "user_item", allEntries = true)
   @Transactional
   public List<User> patchBulk(List<UserDto> dtos) {
     List<Long> ids = dtos.stream().map(UserDto::getId).toList();
@@ -71,48 +58,23 @@ public class UserService {
     }
 
     Map<Long, UserDto> dtoMap = dtos.stream()
-        .collect(Collectors.toMap(
-            UserDto::getId, dto -> dto, (existing, replacement) -> replacement));
+        .collect(Collectors.toMap(UserDto::getId, dto -> dto));
 
     existingUsers.forEach(existing -> {
       UserDto dto = dtoMap.get(existing.getId());
-      if (dto.getUsername() != null) {
-        existing.setUsername(dto.getUsername());
-      }
-      if (dto.getEmail() != null) {
-        existing.setEmail(dto.getEmail());
-      }
-      if (dto.getLevel() != null) {
-        existing.setLevel(dto.getLevel());
-      }
-      if (dto.getDailyGoalMinutes() != null) {
-        existing.setDailyGoalMinutes(dto.getDailyGoalMinutes());
-      }
-      if (dto.getAvatarUrl() != null) {
-        existing.setAvatarUrl(dto.getAvatarUrl());
-      }
+      userMapper.updateEntityFromDto(dto, existing);
     });
 
     return userRepository.saveAll(existingUsers);
   }
 
-  @Caching(
-      evict = {
-          @CacheEvict(value = "user_item", key = "#id"),
-          @CacheEvict(value = "users_page", allEntries = true)
-      }
-  )
+  @CacheEvict(value = "user_item", key = "#id")
   @Transactional
   public void deleteById(Long id) {
     userRepository.deleteById(id);
   }
 
-  @Caching(
-      evict = {
-          @CacheEvict(value = "user_item", allEntries = true),
-          @CacheEvict(value = "users_page", allEntries = true)
-      }
-  )
+  @CacheEvict(value = "user_item", allEntries = true)
   @Transactional
   public void deleteAll(List<Long> ids) {
     userRepository.deleteAllByIdInBatch(ids);

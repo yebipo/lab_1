@@ -3,43 +3,45 @@ package com.antiprocrastinate.lab.mapper;
 import com.antiprocrastinate.lab.dto.TaskDto;
 import com.antiprocrastinate.lab.model.Skill;
 import com.antiprocrastinate.lab.model.Task;
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.NullValueMappingStrategy;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(
-    componentModel = "spring", nullValueMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
+@Mapper(componentModel = "spring")
 public interface TaskMapper {
 
   @Mapping(source = "user.id", target = "userId")
-  @Mapping(source = "skills", target = "skillIds", qualifiedByName = "skillsToIds")
+  @Mapping(source = "skills", target = "skillIds")
   TaskDto toDto(Task task);
 
   @Mapping(source = "userId", target = "user.id")
-  @Mapping(source = "skillIds", target = "skills", qualifiedByName = "idsToSkills")
+  @Mapping(source = "skillIds", target = "skills")
   Task toEntity(TaskDto dto);
 
-  @Named("skillsToIds")
-  default Set<Long> skillsToIds(Set<Skill> skills) {
-    if (skills == null) {
-      return Collections.emptySet();
+  @Mapping(source = "userId", target = "user.id",
+      nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  @Mapping(source = "skillIds", target = "skills",
+      nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  void updateEntityFromDto(TaskDto dto, @MappingTarget Task task);
+
+  @SuppressWarnings("unused")
+  default Long skillToId(Skill skill) {
+    if (skill == null) {
+      return null;
     }
-    return skills.stream().map(Skill::getId).collect(Collectors.toSet());
+    return skill.getId();
   }
 
-  @Named("idsToSkills")
-  default Set<Skill> idsToSkills(Set<Long> skillIds) {
-    if (skillIds == null) {
-      return Collections.emptySet();
+  @SuppressWarnings("unused")
+  default Skill idToSkill(Long id) {
+    if (id == null) {
+      return null;
     }
-    return skillIds.stream().map(id -> {
-      Skill skill = new Skill();
-      skill.setId(id);
-      return skill;
-    }).collect(Collectors.toSet());
+    Skill skill = new Skill();
+    skill.setId(id);
+    return skill;
   }
 }

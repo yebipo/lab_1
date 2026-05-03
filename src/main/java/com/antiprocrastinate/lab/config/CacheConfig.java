@@ -15,11 +15,7 @@ public class CacheConfig {
   @Bean
   public CacheManager cacheManager() {
     CaffeineCacheManager cacheManager = new CaffeineCacheManager(
-        "tasks_page", "task_item",
-        "users_page", "user_item",
-        "categories_page", "category_item",
-        "skills_page", "skill_item",
-        "worklogs_page", "worklog_item"
+        "task_item", "user_item", "category_item", "skill_item", "worklog_item"
     );
     cacheManager.setCaffeine(Caffeine.newBuilder()
         .expireAfterWrite(10, TimeUnit.MINUTES)
