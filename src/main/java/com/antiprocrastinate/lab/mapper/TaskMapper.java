@@ -2,6 +2,7 @@ package com.antiprocrastinate.lab.mapper;
 
 import com.antiprocrastinate.lab.dto.TaskCreateDto;
 import com.antiprocrastinate.lab.dto.TaskResponseDto;
+import com.antiprocrastinate.lab.dto.TaskUpdateDto;
 import com.antiprocrastinate.lab.model.Skill;
 import com.antiprocrastinate.lab.model.Task;
 import java.util.HashSet;
@@ -28,7 +29,7 @@ public interface TaskMapper {
   @Mapping(target = "user", ignore = true)
   @Mapping(source = "skillIds", target = "skills", qualifiedByName = "mapIdsToSkills")
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-  void updateEntity(TaskCreateDto dto, @MappingTarget Task task);
+  void updateEntity(TaskUpdateDto dto, @MappingTarget Task task);
 
   @Named("mapSkillsToIds")
   default Set<Long> skillsToIds(Set<Skill> skills) {

@@ -2,10 +2,10 @@ package com.antiprocrastinate.lab.service;
 
 import com.antiprocrastinate.lab.dto.TaskCreateDto;
 import com.antiprocrastinate.lab.dto.TaskResponseDto;
+import com.antiprocrastinate.lab.dto.TaskUpdateDto;
 import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.mapper.TaskMapper;
 import com.antiprocrastinate.lab.model.Task;
-import com.antiprocrastinate.lab.model.User;
 import com.antiprocrastinate.lab.repository.TaskRepository;
 import com.antiprocrastinate.lab.repository.TaskSpecifications;
 import com.antiprocrastinate.lab.repository.UserRepository;
@@ -25,37 +25,28 @@ public class TaskService {
 
   private static final String TASK_NOT_FOUND_MSG = "Task not found or access denied: ";
 
-  private User getUserByUsername(String username) {
-    return userRepository.findByUsername(username)
-        .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
-  }
-
   @Transactional(readOnly = true)
-  public Page<TaskResponseDto> findAll(String username, Pageable pageable) {
-    Long userId = getUserByUsername(username).getId();
+  public Page<TaskResponseDto> findAll(Long userId, Pageable pageable) {
     return taskRepo.findAllByUserId(userId, pageable).map(taskMapper::toResponseDto);
   }
 
   @Transactional(readOnly = true)
-  public TaskResponseDto findById(Long id, String username) {
-    Long userId = getUserByUsername(username).getId();
+  public TaskResponseDto findById(Long id, Long userId) {
     return taskRepo.findByIdAndUserId(id, userId)
         .map(taskMapper::toResponseDto)
         .orElseThrow(() -> new ResourceNotFoundException(TASK_NOT_FOUND_MSG + id));
   }
 
   @Transactional
-  public TaskResponseDto create(TaskCreateDto dto, String username) {
-    User user = getUserByUsername(username);
+  public TaskResponseDto create(TaskCreateDto dto, Long userId) {
     Task task = taskMapper.toEntity(dto);
-    task.setUser(user);
-    task.setFocusScore(100); // Базовый фокус при создании
+    task.setUser(userRepository.getReferenceById(userId));
+    task.setFocusScore(100);
     return taskMapper.toResponseDto(taskRepo.save(task));
   }
 
   @Transactional
-  public TaskResponseDto update(Long id, TaskCreateDto dto, String username) {
-    Long userId = getUserByUsername(username).getId();
+  public TaskResponseDto update(Long id, TaskUpdateDto dto, Long userId) {
     Task existing = taskRepo.findByIdAndUserId(id, userId)
         .orElseThrow(() -> new ResourceNotFoundException(TASK_NOT_FOUND_MSG + id));
     taskMapper.updateEntity(dto, existing);
@@ -63,8 +54,7 @@ public class TaskService {
   }
 
   @Transactional
-  public void deleteById(Long id, String username) {
-    Long userId = getUserByUsername(username).getId();
+  public void deleteById(Long id, Long userId) {
     Task existing = taskRepo.findByIdAndUserId(id, userId)
         .orElseThrow(() -> new ResourceNotFoundException(TASK_NOT_FOUND_MSG + id));
     taskRepo.delete(existing);
@@ -72,9 +62,7 @@ public class TaskService {
 
   @Transactional(readOnly = true)
   public Page<TaskResponseDto> getTasksFiltered(
-      Long skillId, String status, String title, Pageable pageable, String username) {
-
-    Long userId = getUserByUsername(username).getId();
+      Long skillId, String status, String title, Pageable pageable, Long userId) {
 
     Specification<Task> spec = Specification.where(TaskSpecifications.hasUserId(userId))
         .and(TaskSpecifications.hasSkillId(skillId))

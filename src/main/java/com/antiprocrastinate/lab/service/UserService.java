@@ -35,13 +35,6 @@ public class UserService {
         .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND_MSG + id));
   }
 
-  @Transactional(readOnly = true)
-  public UserResponseDto findByUsername(String username) {
-    return userRepository.findByUsername(username)
-        .map(userMapper::toResponseDto)
-        .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND_MSG + username));
-  }
-
   @Transactional
   public UserResponseDto create(UserCreateDto dto) {
     checkUniqueness(dto.getUsername(), dto.getEmail(), null);
@@ -56,13 +49,6 @@ public class UserService {
   public UserResponseDto update(Long id, UserCreateDto dto) {
     User existing = userRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND_MSG + id));
-    return updateInternal(existing, dto);
-  }
-
-  @Transactional
-  public UserResponseDto updateByUsername(String username, UserCreateDto dto) {
-    User existing = userRepository.findByUsername(username)
-        .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND_MSG + username));
     return updateInternal(existing, dto);
   }
 

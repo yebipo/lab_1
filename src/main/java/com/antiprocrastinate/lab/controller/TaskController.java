@@ -1,14 +1,16 @@
 package com.antiprocrastinate.lab.controller;
 
+import com.antiprocrastinate.lab.config.security.CustomUserDetails;
 import com.antiprocrastinate.lab.dto.PageResponse;
 import com.antiprocrastinate.lab.dto.TaskCreateDto;
 import com.antiprocrastinate.lab.dto.TaskResponseDto;
+import com.antiprocrastinate.lab.dto.TaskUpdateDto;
 import com.antiprocrastinate.lab.service.TaskService;
 import jakarta.validation.Valid;
-import java.security.Principal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,13 +29,15 @@ public class TaskController {
   private final TaskService taskService;
 
   @GetMapping
-  public PageResponse<TaskResponseDto> getAll(Principal principal, Pageable pageable) {
-    return PageResponse.of(taskService.findAll(principal.getName(), pageable));
+  public PageResponse<TaskResponseDto> getAll(
+      @AuthenticationPrincipal CustomUserDetails user, Pageable pageable) {
+    return PageResponse.of(taskService.findAll(user.getId(), pageable));
   }
 
   @GetMapping("/{id}")
-  public TaskResponseDto getById(@PathVariable Long id, Principal principal) {
-    return taskService.findById(id, principal.getName());
+  public TaskResponseDto getById(
+      @PathVariable Long id, @AuthenticationPrincipal CustomUserDetails user) {
+    return taskService.findById(id, user.getId());
   }
 
   @GetMapping("/search")
@@ -41,27 +45,30 @@ public class TaskController {
       @RequestParam(required = false) Long skillId,
       @RequestParam(required = false) String status,
       @RequestParam(required = false) String title,
-      Principal principal,
+      @AuthenticationPrincipal CustomUserDetails user,
       Pageable pageable) {
     return PageResponse.of(taskService.getTasksFiltered(
-        skillId, status, title, pageable, principal.getName()));
+        skillId, status, title, pageable, user.getId()));
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public TaskResponseDto create(@Valid @RequestBody TaskCreateDto dto, Principal principal) {
-    return taskService.create(dto, principal.getName());
+  public TaskResponseDto create(
+      @Valid @RequestBody TaskCreateDto dto, @AuthenticationPrincipal CustomUserDetails user) {
+    return taskService.create(dto, user.getId());
   }
 
   @PutMapping("/{id}")
   public TaskResponseDto update(
-      @PathVariable Long id, @Valid @RequestBody TaskCreateDto dto, Principal principal) {
-    return taskService.update(id, dto, principal.getName());
+      @PathVariable Long id,
+      @Valid @RequestBody TaskUpdateDto dto,
+      @AuthenticationPrincipal CustomUserDetails user) {
+    return taskService.update(id, dto, user.getId());
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void delete(@PathVariable Long id, Principal principal) {
-    taskService.deleteById(id, principal.getName());
+  public void delete(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails user) {
+    taskService.deleteById(id, user.getId());
   }
 }

@@ -1,15 +1,16 @@
 package com.antiprocrastinate.lab.controller;
 
+import com.antiprocrastinate.lab.config.security.CustomUserDetails;
 import com.antiprocrastinate.lab.dto.PageResponse;
 import com.antiprocrastinate.lab.dto.UserCreateDto;
 import com.antiprocrastinate.lab.dto.UserResponseDto;
 import com.antiprocrastinate.lab.service.UserService;
 import jakarta.validation.Valid;
-import java.security.Principal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,13 +28,14 @@ public class UserController {
   private final UserService userService;
 
   @GetMapping("/me")
-  public UserResponseDto getMe(Principal principal) {
-    return userService.findByUsername(principal.getName());
+  public UserResponseDto getMe(@AuthenticationPrincipal CustomUserDetails user) {
+    return userService.findById(user.getId());
   }
 
   @PutMapping("/me")
-  public UserResponseDto updateMe(Principal principal, @Valid @RequestBody UserCreateDto dto) {
-    return userService.updateByUsername(principal.getName(), dto);
+  public UserResponseDto updateMe(
+      @AuthenticationPrincipal CustomUserDetails user, @Valid @RequestBody UserCreateDto dto) {
+    return userService.update(user.getId(), dto);
   }
 
   @PreAuthorize("hasRole('ADMIN')")
