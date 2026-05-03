@@ -1,6 +1,7 @@
 package com.antiprocrastinate.lab.mapper;
 
-import com.antiprocrastinate.lab.dto.CategoryDto;
+import com.antiprocrastinate.lab.dto.CategoryCreateDto;
+import com.antiprocrastinate.lab.dto.CategoryResponseDto;
 import com.antiprocrastinate.lab.model.Category;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -9,10 +10,10 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(componentModel = "spring")
 public interface CategoryMapper {
-  CategoryDto toDto(Category category);
+  CategoryResponseDto toResponseDto(Category category);
 
-  Category toEntity(CategoryDto dto);
+  Category toEntity(CategoryCreateDto dto);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-  void updateEntityFromDto(CategoryDto dto, @MappingTarget Category category);
+  void updateEntity(CategoryCreateDto dto, @MappingTarget Category category);
 }

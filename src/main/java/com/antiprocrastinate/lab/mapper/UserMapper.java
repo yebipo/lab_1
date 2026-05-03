@@ -1,6 +1,7 @@
 package com.antiprocrastinate.lab.mapper;
 
-import com.antiprocrastinate.lab.dto.UserDto;
+import com.antiprocrastinate.lab.dto.UserCreateDto;
+import com.antiprocrastinate.lab.dto.UserResponseDto;
 import com.antiprocrastinate.lab.model.User;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -9,10 +10,10 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
-  UserDto toDto(User user);
+  UserResponseDto toResponseDto(User user);
 
-  User toEntity(UserDto dto);
+  User toEntity(UserCreateDto dto);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-  void updateEntityFromDto(UserDto dto, @MappingTarget User user);
+  void updateEntity(UserCreateDto dto, @MappingTarget User user);
 }

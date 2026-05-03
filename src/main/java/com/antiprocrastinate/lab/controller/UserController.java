@@ -1,21 +1,15 @@
 package com.antiprocrastinate.lab.controller;
 
 import com.antiprocrastinate.lab.dto.PageResponse;
-import com.antiprocrastinate.lab.dto.UserDto;
-import com.antiprocrastinate.lab.mapper.UserMapper;
+import com.antiprocrastinate.lab.dto.UserCreateDto;
+import com.antiprocrastinate.lab.dto.UserResponseDto;
 import com.antiprocrastinate.lab.service.UserService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -27,47 +21,32 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-@Tag(name = "Пользователи", description = "Управление пользователями")
 public class UserController {
   private final UserService userService;
-  private final UserMapper userMapper;
 
   @GetMapping
-  @Operation(summary = "Получить всех пользователей (с пагинацией)")
-  public PageResponse<UserDto> getAll(@ParameterObject @PageableDefault Pageable pageable) {
-    return PageResponse.of(userService.findAll(pageable).map(userMapper::toDto));
+  public PageResponse<UserResponseDto> getAll(Pageable pageable) {
+    return PageResponse.of(userService.findAll(pageable));
   }
 
   @GetMapping("/{id}")
-  @Operation(summary = "Получить пользователя по ID")
-  public UserDto getById(@PathVariable Long id) {
-    return userMapper.toDto(userService.findById(id));
+  public UserResponseDto getById(@PathVariable Long id) {
+    return userService.findById(id);
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Создать нового пользователя")
-  public UserDto create(@Valid @RequestBody UserDto dto) {
-    return userMapper.toDto(userService.create(dto));
+  public UserResponseDto create(@Valid @RequestBody UserCreateDto dto) {
+    return userService.create(dto);
   }
 
   @PutMapping("/{id}")
-  @Operation(summary = "Обновить пользователя")
-  public UserDto update(@PathVariable Long id, @Valid @RequestBody UserDto dto) {
-    return userMapper.toDto(userService.update(id, dto));
-  }
-
-  @PatchMapping("/bulk")
-  @Operation(summary = "Массовое частичное обновление пользователей")
-  public List<UserDto> patchBulk(@RequestBody List<UserDto> dtos) {
-    return userService.patchBulk(dtos).stream()
-        .map(userMapper::toDto)
-        .toList();
+  public UserResponseDto update(@PathVariable Long id, @Valid @RequestBody UserCreateDto dto) {
+    return userService.update(id, dto);
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(summary = "Удалить пользователя")
   public void delete(@PathVariable Long id) {
     userService.deleteById(id);
   }

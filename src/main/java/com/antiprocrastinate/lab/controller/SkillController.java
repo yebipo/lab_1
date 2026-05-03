@@ -1,21 +1,15 @@
 package com.antiprocrastinate.lab.controller;
 
 import com.antiprocrastinate.lab.dto.PageResponse;
-import com.antiprocrastinate.lab.dto.SkillDto;
-import com.antiprocrastinate.lab.mapper.SkillMapper;
+import com.antiprocrastinate.lab.dto.SkillCreateDto;
+import com.antiprocrastinate.lab.dto.SkillResponseDto;
 import com.antiprocrastinate.lab.service.SkillService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -27,47 +21,32 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/skills")
 @RequiredArgsConstructor
-@Tag(name = "Навыки", description = "Управление навыками")
 public class SkillController {
   private final SkillService skillService;
-  private final SkillMapper skillMapper;
 
   @GetMapping
-  @Operation(summary = "Получить все навыки (с пагинацией)")
-  public PageResponse<SkillDto> getAll(@ParameterObject @PageableDefault Pageable pageable) {
-    return PageResponse.of(skillService.findAll(pageable).map(skillMapper::toDto));
+  public PageResponse<SkillResponseDto> getAll(Pageable pageable) {
+    return PageResponse.of(skillService.findAll(pageable));
   }
 
   @GetMapping("/{id}")
-  @Operation(summary = "Получить навык по ID")
-  public SkillDto getById(@PathVariable Long id) {
-    return skillMapper.toDto(skillService.findById(id));
+  public SkillResponseDto getById(@PathVariable Long id) {
+    return skillService.findById(id);
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Создать новый навык")
-  public SkillDto create(@Valid @RequestBody SkillDto dto) {
-    return skillMapper.toDto(skillService.create(dto));
+  public SkillResponseDto create(@Valid @RequestBody SkillCreateDto dto) {
+    return skillService.create(dto);
   }
 
   @PutMapping("/{id}")
-  @Operation(summary = "Обновить навык")
-  public SkillDto update(@PathVariable Long id, @Valid @RequestBody SkillDto dto) {
-    return skillMapper.toDto(skillService.update(id, dto));
-  }
-
-  @PatchMapping("/bulk")
-  @Operation(summary = "Массовое частичное обновление навыков")
-  public List<SkillDto> patchBulk(@RequestBody List<SkillDto> dtos) {
-    return skillService.patchBulk(dtos).stream()
-        .map(skillMapper::toDto)
-        .toList();
+  public SkillResponseDto update(@PathVariable Long id, @Valid @RequestBody SkillCreateDto dto) {
+    return skillService.update(id, dto);
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(summary = "Удалить навык")
   public void delete(@PathVariable Long id) {
     skillService.deleteById(id);
   }

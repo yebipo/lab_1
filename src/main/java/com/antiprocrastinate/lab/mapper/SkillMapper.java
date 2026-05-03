@@ -1,6 +1,7 @@
 package com.antiprocrastinate.lab.mapper;
 
-import com.antiprocrastinate.lab.dto.SkillDto;
+import com.antiprocrastinate.lab.dto.SkillCreateDto;
+import com.antiprocrastinate.lab.dto.SkillResponseDto;
 import com.antiprocrastinate.lab.model.Skill;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -10,15 +11,13 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(componentModel = "spring")
 public interface SkillMapper {
-
   @Mapping(source = "category.id", target = "categoryId")
-  SkillDto toDto(Skill skill);
+  SkillResponseDto toResponseDto(Skill skill);
 
   @Mapping(source = "categoryId", target = "category.id")
-  Skill toEntity(SkillDto dto);
+  Skill toEntity(SkillCreateDto dto);
 
-  @Mapping(source = "categoryId", target = "category.id",
-      nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  @Mapping(source = "categoryId", target = "category.id")
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-  void updateEntityFromDto(SkillDto dto, @MappingTarget Skill skill);
+  void updateEntity(SkillCreateDto dto, @MappingTarget Skill skill);
 }

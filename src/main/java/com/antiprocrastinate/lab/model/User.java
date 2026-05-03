@@ -33,6 +33,6 @@ public class User {
 
   @ToString.Exclude
   @BatchSize(size = 20)
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<Task> tasks = new HashSet<>();
 }

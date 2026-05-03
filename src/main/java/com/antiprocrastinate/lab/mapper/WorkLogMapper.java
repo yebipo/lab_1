@@ -1,6 +1,7 @@
 package com.antiprocrastinate.lab.mapper;
 
-import com.antiprocrastinate.lab.dto.WorkLogDto;
+import com.antiprocrastinate.lab.dto.WorkLogCreateDto;
+import com.antiprocrastinate.lab.dto.WorkLogResponseDto;
 import com.antiprocrastinate.lab.model.WorkLog;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.BeanMapping;
@@ -13,21 +14,20 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public interface WorkLogMapper {
 
   @Mapping(source = "task.id", target = "taskId")
-  @Mapping(target = "endTime", ignore = true) // Будет вычислено в afterMapping
-  WorkLogDto toDto(WorkLog workLog);
+  @Mapping(target = "endTime", ignore = true)
+  WorkLogResponseDto toResponseDto(WorkLog workLog);
 
   @Mapping(source = "taskId", target = "task.id")
-  WorkLog toEntity(WorkLogDto dto);
+  WorkLog toEntity(WorkLogCreateDto dto);
+
+  @Mapping(source = "taskId", target = "task.id")
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  void updateEntity(WorkLogCreateDto dto, @MappingTarget WorkLog workLog);
 
   @AfterMapping
-  default void calculateEndTime(WorkLog entity, @MappingTarget WorkLogDto dto) {
+  default void calculateEndTime(WorkLog entity, @MappingTarget WorkLogResponseDto dto) {
     if (entity.getStartTime() != null && entity.getDurationMinutes() != null) {
       dto.setEndTime(entity.getStartTime().plusMinutes(entity.getDurationMinutes()));
     }
   }
-
-  @Mapping(source = "taskId", target = "task.id",
-      nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-  void updateEntityFromDto(WorkLogDto dto, @MappingTarget WorkLog workLog);
 }
