@@ -1,5 +1,6 @@
 package com.antiprocrastinate.lab.controller;
 
+import com.antiprocrastinate.lab.dto.PageResponse;
 import com.antiprocrastinate.lab.dto.SkillDto;
 import com.antiprocrastinate.lab.mapper.SkillMapper;
 import com.antiprocrastinate.lab.service.SkillService;
@@ -9,7 +10,6 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -33,9 +33,9 @@ public class SkillController {
   private final SkillMapper skillMapper;
 
   @GetMapping
-  @Operation(summary = "Получить все навыки (с пагинацией и сортировкой)")
-  public Page<SkillDto> getAll(@ParameterObject @PageableDefault Pageable pageable) {
-    return skillService.findAll(pageable).map(skillMapper::toDto);
+  @Operation(summary = "Получить все навыки (с пагинацией)")
+  public PageResponse<SkillDto> getAll(@ParameterObject @PageableDefault Pageable pageable) {
+    return PageResponse.of(skillService.findAll(pageable).map(skillMapper::toDto));
   }
 
   @GetMapping("/{id}")

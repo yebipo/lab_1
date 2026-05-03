@@ -1,5 +1,6 @@
 package com.antiprocrastinate.lab.controller;
 
+import com.antiprocrastinate.lab.dto.PageResponse;
 import com.antiprocrastinate.lab.dto.WorkLogDto;
 import com.antiprocrastinate.lab.mapper.WorkLogMapper;
 import com.antiprocrastinate.lab.service.WorkLogService;
@@ -9,7 +10,6 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -33,9 +33,9 @@ public class WorkLogController {
   private final WorkLogMapper workLogMapper;
 
   @GetMapping
-  @Operation(summary = "Получить все логи работы (с пагинацией и сортировкой)")
-  public Page<WorkLogDto> getAll(@ParameterObject @PageableDefault Pageable pageable) {
-    return workLogService.findAll(pageable).map(workLogMapper::toDto);
+  @Operation(summary = "Получить все логи работы (с пагинацией)")
+  public PageResponse<WorkLogDto> getAll(@ParameterObject @PageableDefault Pageable pageable) {
+    return PageResponse.of(workLogService.findAll(pageable).map(workLogMapper::toDto));
   }
 
   @GetMapping("/{id}")

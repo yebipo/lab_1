@@ -24,7 +24,6 @@ public class WorkLog {
   private Long id;
 
   private LocalDateTime startTime;
-  private LocalDateTime endTime;
   private Integer durationMinutes;
   private String comment;
   private Integer interruptionCount;

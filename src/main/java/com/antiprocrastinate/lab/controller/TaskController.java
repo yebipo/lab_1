@@ -1,5 +1,6 @@
 package com.antiprocrastinate.lab.controller;
 
+import com.antiprocrastinate.lab.dto.PageResponse;
 import com.antiprocrastinate.lab.dto.TaskDto;
 import com.antiprocrastinate.lab.mapper.TaskMapper;
 import com.antiprocrastinate.lab.service.TaskService;
@@ -9,7 +10,6 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -34,9 +34,9 @@ public class TaskController {
   private final TaskMapper taskMapper;
 
   @GetMapping
-  @Operation(summary = "Получить все задачи (с пагинацией и сортировкой)")
-  public Page<TaskDto> getAll(@ParameterObject @PageableDefault Pageable pageable) {
-    return taskService.findAll(pageable).map(taskMapper::toDto);
+  @Operation(summary = "Получить все задачи (с пагинацией)")
+  public PageResponse<TaskDto> getAll(@ParameterObject @PageableDefault Pageable pageable) {
+    return PageResponse.of(taskService.findAll(pageable).map(taskMapper::toDto));
   }
 
   @GetMapping("/{id}")
@@ -46,15 +46,16 @@ public class TaskController {
   }
 
   @GetMapping("/search")
-  @Operation(summary = "Поиск и фильтрация задач с пагинацией")
-  public Page<TaskDto> search(
-      @RequestParam Long userId,
-      @RequestParam Long skillId,
-      @ParameterObject @PageableDefault Pageable pageable,
-      @RequestParam(defaultValue = "false") boolean useNative
+  @Operation(summary = "Универсальный поиск и фильтрация задач")
+  public PageResponse<TaskDto> search(
+      @RequestParam(required = false) Long userId,
+      @RequestParam(required = false) Long skillId,
+      @RequestParam(required = false) String status,
+      @RequestParam(required = false) String title,
+      @ParameterObject @PageableDefault Pageable pageable
   ) {
-    return taskService.getTasksFiltered(userId, skillId, pageable, useNative)
-        .map(taskMapper::toDto);
+    return PageResponse.of(taskService.getTasksFiltered(userId, skillId, status, title, pageable)
+        .map(taskMapper::toDto));
   }
 
   @PostMapping

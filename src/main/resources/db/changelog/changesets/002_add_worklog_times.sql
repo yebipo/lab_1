@@ -1,2 +1,1 @@
 ALTER TABLE work_logs ADD COLUMN start_time TIMESTAMP;
-ALTER TABLE work_logs ADD COLUMN end_time TIMESTAMP;

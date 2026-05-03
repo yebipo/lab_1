@@ -1,6 +1,7 @@
 package com.antiprocrastinate.lab.controller;
 
 import com.antiprocrastinate.lab.dto.CategoryDto;
+import com.antiprocrastinate.lab.dto.PageResponse;
 import com.antiprocrastinate.lab.mapper.CategoryMapper;
 import com.antiprocrastinate.lab.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,7 +10,6 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -33,9 +33,9 @@ public class CategoryController {
   private final CategoryMapper categoryMapper;
 
   @GetMapping
-  @Operation(summary = "Получить все категории (с пагинацией и сортировкой)")
-  public Page<CategoryDto> getAll(@ParameterObject @PageableDefault Pageable pageable) {
-    return categoryService.findAll(pageable).map(categoryMapper::toDto);
+  @Operation(summary = "Получить все категории (с пагинацией)")
+  public PageResponse<CategoryDto> getAll(@ParameterObject @PageableDefault Pageable pageable) {
+    return PageResponse.of(categoryService.findAll(pageable).map(categoryMapper::toDto));
   }
 
   @GetMapping("/{id}")

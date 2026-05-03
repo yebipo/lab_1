@@ -1,5 +1,6 @@
 package com.antiprocrastinate.lab.controller;
 
+import com.antiprocrastinate.lab.dto.PageResponse;
 import com.antiprocrastinate.lab.dto.UserDto;
 import com.antiprocrastinate.lab.mapper.UserMapper;
 import com.antiprocrastinate.lab.service.UserService;
@@ -9,7 +10,6 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -33,9 +33,9 @@ public class UserController {
   private final UserMapper userMapper;
 
   @GetMapping
-  @Operation(summary = "Получить всех пользователей (с пагинацией и сортировкой)")
-  public Page<UserDto> getAll(@ParameterObject @PageableDefault Pageable pageable) {
-    return userService.findAll(pageable).map(userMapper::toDto);
+  @Operation(summary = "Получить всех пользователей (с пагинацией)")
+  public PageResponse<UserDto> getAll(@ParameterObject @PageableDefault Pageable pageable) {
+    return PageResponse.of(userService.findAll(pageable).map(userMapper::toDto));
   }
 
   @GetMapping("/{id}")

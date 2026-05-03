@@ -5,6 +5,7 @@ import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.mapper.TaskMapper;
 import com.antiprocrastinate.lab.model.Task;
 import com.antiprocrastinate.lab.repository.TaskRepository;
+import com.antiprocrastinate.lab.repository.TaskSpecifications;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -14,6 +15,7 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,9 +74,7 @@ public class TaskService {
   @CacheEvict(value = "task_item", allEntries = true)
   @Transactional
   public void deleteAll(List<Long> ids) {
-    for (Long id : ids) {
-      deleteInternal(id);
-    }
+    ids.forEach(this::deleteInternal);
   }
 
   private void deleteInternal(Long id) {
@@ -84,9 +84,11 @@ public class TaskService {
   }
 
   @Transactional(readOnly = true)
-  public Page<Task> getTasksFiltered(Long userId, Long skillId, Pageable pageable, boolean useNative) {
-    return useNative
-        ? taskRepo.findTasksByUserAndSkillNative(userId, skillId, pageable)
-        : taskRepo.findTasksByUserAndSkillJpql(userId, skillId, pageable);
+  public Page<Task> getTasksFiltered(Long userId, Long skillId, String status, String title, Pageable pageable) {
+    Specification<Task> spec = Specification.where(TaskSpecifications.hasUserId(userId))
+        .and(TaskSpecifications.hasSkillId(skillId))
+        .and(TaskSpecifications.hasStatus(status))
+        .and(TaskSpecifications.titleLike(title));
+    return taskRepo.findAll(spec, pageable);
   }
 }

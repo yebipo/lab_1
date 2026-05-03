@@ -2,6 +2,7 @@ package com.antiprocrastinate.lab.mapper;
 
 import com.antiprocrastinate.lab.dto.WorkLogDto;
 import com.antiprocrastinate.lab.model.WorkLog;
+import org.mapstruct.AfterMapping;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -12,10 +13,18 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public interface WorkLogMapper {
 
   @Mapping(source = "task.id", target = "taskId")
+  @Mapping(target = "endTime", ignore = true) // Будет вычислено в afterMapping
   WorkLogDto toDto(WorkLog workLog);
 
   @Mapping(source = "taskId", target = "task.id")
   WorkLog toEntity(WorkLogDto dto);
+
+  @AfterMapping
+  default void calculateEndTime(WorkLog entity, @MappingTarget WorkLogDto dto) {
+    if (entity.getStartTime() != null && entity.getDurationMinutes() != null) {
+      dto.setEndTime(entity.getStartTime().plusMinutes(entity.getDurationMinutes()));
+    }
+  }
 
   @Mapping(source = "taskId", target = "task.id",
       nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

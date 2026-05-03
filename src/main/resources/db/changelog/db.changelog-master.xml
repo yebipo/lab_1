@@ -7,5 +7,6 @@
 
     <include file="db/changelog/changesets/001_init_schema.sql"/>
     <include file="db/changelog/changesets/002_add_worklog_times.sql"/>
+    <include file="db/changelog/changesets/003_convert_status_to_enum.sql"/>
 
 </databaseChangeLog>
