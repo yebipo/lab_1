@@ -5,12 +5,15 @@ import com.antiprocrastinate.lab.dto.TaskResponseDto;
 import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.mapper.TaskMapper;
 import com.antiprocrastinate.lab.model.Task;
+import com.antiprocrastinate.lab.model.User;
 import com.antiprocrastinate.lab.repository.TaskRepository;
 import com.antiprocrastinate.lab.repository.TaskSpecifications;
+import com.antiprocrastinate.lab.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TaskService {
   private final TaskRepository taskRepo;
   private final TaskMapper taskMapper;
+  private final UserRepository userRepository;
 
   @Transactional(readOnly = true)
   public Page<TaskResponseDto> findAll(Pageable pageable) {
@@ -34,7 +38,14 @@ public class TaskService {
 
   @Transactional
   public TaskResponseDto create(TaskCreateDto dto) {
-    return taskMapper.toResponseDto(taskRepo.save(taskMapper.toEntity(dto)));
+    String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    User currentUser = userRepository.findByUsername(username)
+        .orElseThrow(() -> new ResourceNotFoundException("User session error"));
+
+    Task task = taskMapper.toEntity(dto);
+    task.setUser(currentUser);
+
+    return taskMapper.toResponseDto(taskRepo.save(task));
   }
 
   @Transactional

@@ -18,4 +18,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
   @EntityGraph(attributePaths = {"tasks"})
   Optional<User> findById(Long id);
+
+  Optional<User> findByUsername(String username);
 }

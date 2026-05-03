@@ -21,11 +21,11 @@ public interface TaskMapper {
   @Mapping(source = "skills", target = "skillIds", qualifiedByName = "mapSkillsToIds")
   TaskResponseDto toResponseDto(Task task);
 
-  @Mapping(source = "userId", target = "user.id")
+  @Mapping(target = "user", ignore = true)
   @Mapping(source = "skillIds", target = "skills", qualifiedByName = "mapIdsToSkills")
   Task toEntity(TaskCreateDto dto);
 
-  @Mapping(source = "userId", target = "user.id")
+  @Mapping(target = "user", ignore = true)
   @Mapping(source = "skillIds", target = "skills", qualifiedByName = "mapIdsToSkills")
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
   void updateEntity(TaskCreateDto dto, @MappingTarget Task task);

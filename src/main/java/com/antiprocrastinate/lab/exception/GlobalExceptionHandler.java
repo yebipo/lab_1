@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -31,9 +32,16 @@ public class GlobalExceptionHandler {
         "Ошибка валидации данных", errors);
   }
 
+  // Добавлена обработка ошибок доступа
+  @ExceptionHandler(AccessDeniedException.class)
+  public ResponseEntity<ErrorResponseDto> handleAccessDenied(AccessDeniedException ex) {
+    log.warn("Доступ запрещен: {}", ex.getMessage());
+    return buildResponse(HttpStatus.FORBIDDEN, "FORBIDDEN",
+        "У вас недостаточно прав для этого действия", null);
+  }
+
   @ExceptionHandler(ResourceNotFoundException.class)
   public ResponseEntity<ErrorResponseDto> handleResourceNotFound(ResourceNotFoundException ex) {
-    // Используем параметр 'ex'
     log.warn("Ресурс не найден: {}", ex.getMessage());
     return buildResponse(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage(), null);
   }
@@ -58,12 +66,11 @@ public class GlobalExceptionHandler {
         "INTERNAL_ERROR", "Произошла внутренняя ошибка сервера", null);
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
   @ExceptionHandler(DataIntegrityViolationException.class)
   public ResponseEntity<ErrorResponseDto> handleDataIntegrity(DataIntegrityViolationException ex) {
     log.error("Нарушение целостности данных БД: ", ex);
     return buildResponse(HttpStatus.BAD_REQUEST, "DATA_INTEGRITY_VIOLATION",
-        "Нарушение целостности данных. Проверьте правильность ссылок на другие ресурсы (пользователи, задачи) и уникальность переданных значений.", null);
+        "Нарушение целостности данных. Проверьте связи и уникальность значений.", null);
   }
 
   private ResponseEntity<ErrorResponseDto> buildResponse(
