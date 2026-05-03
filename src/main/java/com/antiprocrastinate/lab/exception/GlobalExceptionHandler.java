@@ -9,6 +9,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -32,7 +34,15 @@ public class GlobalExceptionHandler {
         "Ошибка валидации данных", errors);
   }
 
-  // Добавлена обработка ошибок доступа
+  @ExceptionHandler(AuthenticationException.class)
+  public ResponseEntity<ErrorResponseDto> handleAuthenticationException(
+      AuthenticationException ex) {
+    log.warn("Ошибка аутентификации: {}", ex.getMessage());
+    String message = ex instanceof BadCredentialsException ? "Неверный логин или пароль" :
+        "Ошибка авторизации";
+    return buildResponse(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", message, null);
+  }
+
   @ExceptionHandler(AccessDeniedException.class)
   public ResponseEntity<ErrorResponseDto> handleAccessDenied(AccessDeniedException ex) {
     log.warn("Доступ запрещен: {}", ex.getMessage());

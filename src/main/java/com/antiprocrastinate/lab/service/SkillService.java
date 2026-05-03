@@ -11,6 +11,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,12 +21,12 @@ public class SkillService {
   private final SkillRepository skillRepository;
   private final SkillMapper skillMapper;
 
-  @Cacheable("skill_item")
   @Transactional(readOnly = true)
   public Page<SkillResponseDto> findAll(Pageable pageable) {
     return skillRepository.findAll(pageable).map(skillMapper::toResponseDto);
   }
 
+  @Cacheable(value = "skill_item", key = "#id")
   @Transactional(readOnly = true)
   public SkillResponseDto findById(Long id) {
     return skillRepository.findById(id)
@@ -33,13 +34,14 @@ public class SkillService {
         .orElseThrow(() -> new ResourceNotFoundException("Skill not found: " + id));
   }
 
-  @CacheEvict(value = "skill_item", allEntries = true)
+  @PreAuthorize("hasRole('ADMIN')")
   @Transactional
   public SkillResponseDto create(SkillCreateDto dto) {
     return skillMapper.toResponseDto(skillRepository.save(skillMapper.toEntity(dto)));
   }
 
-  @CacheEvict(value = "skill_item", allEntries = true)
+  @PreAuthorize("hasRole('ADMIN')")
+  @CacheEvict(value = "skill_item", key = "#id")
   @Transactional
   public SkillResponseDto update(Long id, SkillCreateDto dto) {
     Skill existing = skillRepository.findById(id)
@@ -48,7 +50,8 @@ public class SkillService {
     return skillMapper.toResponseDto(skillRepository.save(existing));
   }
 
-  @CacheEvict(value = "skill_item", allEntries = true)
+  @PreAuthorize("hasRole('ADMIN')")
+  @CacheEvict(value = "skill_item", key = "#id")
   @Transactional
   public void deleteById(Long id) {
     skillRepository.deleteById(id);

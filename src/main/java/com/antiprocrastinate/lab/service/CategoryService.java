@@ -11,6 +11,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,12 +21,12 @@ public class CategoryService {
   private final CategoryRepository categoryRepository;
   private final CategoryMapper categoryMapper;
 
-  @Cacheable("category_item")
   @Transactional(readOnly = true)
   public Page<CategoryResponseDto> findAll(Pageable pageable) {
     return categoryRepository.findAll(pageable).map(categoryMapper::toResponseDto);
   }
 
+  @Cacheable(value = "category_item", key = "#id")
   @Transactional(readOnly = true)
   public CategoryResponseDto findById(Long id) {
     return categoryRepository.findById(id)
@@ -33,13 +34,14 @@ public class CategoryService {
         .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + id));
   }
 
-  @CacheEvict(value = "category_item", allEntries = true)
+  @PreAuthorize("hasRole('ADMIN')")
   @Transactional
   public CategoryResponseDto create(CategoryCreateDto dto) {
     return categoryMapper.toResponseDto(categoryRepository.save(categoryMapper.toEntity(dto)));
   }
 
-  @CacheEvict(value = "category_item", allEntries = true)
+  @PreAuthorize("hasRole('ADMIN')")
+  @CacheEvict(value = "category_item", key = "#id")
   @Transactional
   public CategoryResponseDto update(Long id, CategoryCreateDto dto) {
     Category existing = categoryRepository.findById(id)
@@ -48,7 +50,8 @@ public class CategoryService {
     return categoryMapper.toResponseDto(categoryRepository.save(existing));
   }
 
-  @CacheEvict(value = "category_item", allEntries = true)
+  @PreAuthorize("hasRole('ADMIN')")
+  @CacheEvict(value = "category_item", key = "#id")
   @Transactional
   public void deleteById(Long id) {
     categoryRepository.deleteById(id);

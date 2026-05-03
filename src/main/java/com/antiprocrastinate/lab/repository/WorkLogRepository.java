@@ -13,10 +13,9 @@ import org.springframework.stereotype.Repository;
 @NullMarked
 public interface WorkLogRepository extends JpaRepository<WorkLog, Long> {
 
-  @Override
   @EntityGraph(attributePaths = {"task"})
-  Page<WorkLog> findAll(Pageable pageable);
+  Page<WorkLog> findAllByTaskUserId(Long userId, Pageable pageable);
 
   @EntityGraph(attributePaths = {"task"})
-  Optional<WorkLog> findById(Long id);
+  Optional<WorkLog> findByIdAndTaskUserId(Long id, Long userId);
 }
