@@ -24,7 +24,7 @@ public class AuthService {
             loginRequest.getUsername(), loginRequest.getPassword()));
 
     CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
-    return jwtUtils.generateToken(userDetails);
+    return jwtUtils.generateToken(userDetails.getUsername());
   }
 
   public UserResponseDto register(UserCreateDto dto) {
