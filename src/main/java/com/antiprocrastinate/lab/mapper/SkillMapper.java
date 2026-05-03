@@ -10,6 +10,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(componentModel = "spring")
 public interface SkillMapper {
+
   @Mapping(source = "category.id", target = "categoryId")
   SkillDto toDto(Skill skill);
 

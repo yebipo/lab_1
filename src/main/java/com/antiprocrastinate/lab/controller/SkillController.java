@@ -2,7 +2,6 @@ package com.antiprocrastinate.lab.controller;
 
 import com.antiprocrastinate.lab.dto.SkillDto;
 import com.antiprocrastinate.lab.mapper.SkillMapper;
-import com.antiprocrastinate.lab.model.Skill;
 import com.antiprocrastinate.lab.service.SkillService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -48,24 +47,22 @@ public class SkillController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(summary = "Создать новый навык")
-  public SkillDto create(@Valid @RequestBody SkillDto skillDto) {
-    Skill skill = skillMapper.toEntity(skillDto);
-    return skillMapper.toDto(skillService.save(skill));
+  public SkillDto create(@Valid @RequestBody SkillDto dto) {
+    return skillMapper.toDto(skillService.create(dto));
   }
 
   @PutMapping("/{id}")
   @Operation(summary = "Обновить навык")
-  public SkillDto update(@PathVariable Long id, @Valid @RequestBody SkillDto skillDto) {
-    Skill skill = skillMapper.toEntity(skillDto);
-    skill.setId(id);
-    return skillMapper.toDto(skillService.save(skill));
+  public SkillDto update(@PathVariable Long id, @Valid @RequestBody SkillDto dto) {
+    return skillMapper.toDto(skillService.update(id, dto));
   }
 
   @PatchMapping("/bulk")
   @Operation(summary = "Массовое частичное обновление навыков")
   public List<SkillDto> patchBulk(@RequestBody List<SkillDto> dtos) {
-    List<Skill> updatedSkills = skillService.patchBulk(dtos);
-    return updatedSkills.stream().map(skillMapper::toDto).toList();
+    return skillService.patchBulk(dtos).stream()
+        .map(skillMapper::toDto)
+        .toList();
   }
 
   @DeleteMapping("/{id}")

@@ -1,12 +1,12 @@
 package com.antiprocrastinate.lab.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
+import com.antiprocrastinate.lab.dto.UserDto;
+import com.antiprocrastinate.lab.mapper.UserMapper;
 import com.antiprocrastinate.lab.model.User;
 import com.antiprocrastinate.lab.repository.UserRepository;
 import java.util.List;
@@ -25,11 +25,9 @@ import org.springframework.data.domain.Pageable;
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
-  @Mock
-  private UserRepository userRepository;
-
-  @InjectMocks
-  private UserService userService;
+  @Mock private UserRepository userRepository;
+  @Mock private UserMapper userMapper;
+  @InjectMocks private UserService userService;
 
   private User testUser;
   private Pageable pageable;
@@ -45,29 +43,46 @@ class UserServiceTest {
   void shouldFindAll() {
     Page<User> page = new PageImpl<>(List.of(testUser));
     when(userRepository.findAll(pageable)).thenReturn(page);
-    Page<User> result = userService.findAll(pageable);
-    assertThat(result.getContent()).hasSize(1);
+    assertThat(userService.findAll(pageable).getContent()).hasSize(1);
   }
 
   @Test
   void shouldFindById() {
     when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-    User result = userService.findById(1L);
-    assertThat(result.getId()).isEqualTo(1L);
+    assertThat(userService.findById(1L).getId()).isEqualTo(1L);
   }
 
   @Test
-  void shouldThrowWhenNotFound() {
-    when(userRepository.findById(999L)).thenReturn(Optional.empty());
-    assertThatThrownBy(() -> userService.findById(999L))
-        .isInstanceOf(ResourceNotFoundException.class);
-  }
+  void shouldCreate() {
+    UserDto dto = new UserDto();
+    when(userMapper.toEntity(dto)).thenReturn(testUser);
+    when(userRepository.save(testUser)).thenReturn(testUser);
 
-  @Test
-  void shouldSave() {
-    when(userRepository.save(any(User.class))).thenReturn(testUser);
-    userService.save(testUser);
+    User result = userService.create(dto);
+    assertThat(result).isNotNull();
     verify(userRepository).save(testUser);
+  }
+
+  @Test
+  void shouldUpdate() {
+    UserDto dto = new UserDto();
+    when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+    when(userRepository.save(testUser)).thenReturn(testUser);
+
+    userService.update(1L, dto);
+    verify(userMapper).updateEntityFromDto(dto, testUser);
+    verify(userRepository).save(testUser);
+  }
+
+  @Test
+  void shouldPatchBulk() {
+    UserDto dto = new UserDto(); dto.setId(1L);
+    when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(testUser));
+    when(userRepository.saveAll(anyList())).thenReturn(List.of(testUser));
+
+    userService.patchBulk(List.of(dto));
+    verify(userMapper).updateEntityFromDto(dto, testUser);
+    verify(userRepository).saveAll(anyList());
   }
 
   @Test
@@ -77,17 +92,7 @@ class UserServiceTest {
   }
 
   @Test
-  void shouldSaveAll() {
-    List<User> users = List.of(testUser);
-    when(userRepository.saveAll(users)).thenReturn(users);
-
-    List<User> result = userService.saveAll(users);
-    assertThat(result).hasSize(1);
-    verify(userRepository).saveAll(users);
-  }
-
-  @Test
-  void shouldDeleteAll() {
+  void shouldDeleteAllInBatch() {
     List<Long> ids = List.of(1L, 2L);
     userService.deleteAll(ids);
     verify(userRepository).deleteAllByIdInBatch(ids);

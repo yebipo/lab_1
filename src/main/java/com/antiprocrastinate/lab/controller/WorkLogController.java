@@ -2,7 +2,6 @@ package com.antiprocrastinate.lab.controller;
 
 import com.antiprocrastinate.lab.dto.WorkLogDto;
 import com.antiprocrastinate.lab.mapper.WorkLogMapper;
-import com.antiprocrastinate.lab.model.WorkLog;
 import com.antiprocrastinate.lab.service.WorkLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -48,24 +47,22 @@ public class WorkLogController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(summary = "Создать новый лог работы")
-  public WorkLogDto create(@Valid @RequestBody WorkLogDto workLogDto) {
-    WorkLog workLog = workLogMapper.toEntity(workLogDto);
-    return workLogMapper.toDto(workLogService.save(workLog));
+  public WorkLogDto create(@Valid @RequestBody WorkLogDto dto) {
+    return workLogMapper.toDto(workLogService.create(dto));
   }
 
   @PutMapping("/{id}")
   @Operation(summary = "Обновить лог работы")
-  public WorkLogDto update(@PathVariable Long id, @Valid @RequestBody WorkLogDto workLogDto) {
-    WorkLog workLog = workLogMapper.toEntity(workLogDto);
-    workLog.setId(id);
-    return workLogMapper.toDto(workLogService.save(workLog));
+  public WorkLogDto update(@PathVariable Long id, @Valid @RequestBody WorkLogDto dto) {
+    return workLogMapper.toDto(workLogService.update(id, dto));
   }
 
   @PatchMapping("/bulk")
   @Operation(summary = "Массовое частичное обновление логов работы")
   public List<WorkLogDto> patchBulk(@RequestBody List<WorkLogDto> dtos) {
-    List<WorkLog> updatedWorkLogs = workLogService.patchBulk(dtos);
-    return updatedWorkLogs.stream().map(workLogMapper::toDto).toList();
+    return workLogService.patchBulk(dtos).stream()
+        .map(workLogMapper::toDto)
+        .toList();
   }
 
   @DeleteMapping("/{id}")

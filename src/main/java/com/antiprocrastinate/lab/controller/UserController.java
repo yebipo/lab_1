@@ -2,7 +2,6 @@ package com.antiprocrastinate.lab.controller;
 
 import com.antiprocrastinate.lab.dto.UserDto;
 import com.antiprocrastinate.lab.mapper.UserMapper;
-import com.antiprocrastinate.lab.model.User;
 import com.antiprocrastinate.lab.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -48,24 +47,22 @@ public class UserController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(summary = "Создать нового пользователя")
-  public UserDto create(@Valid @RequestBody UserDto userDto) {
-    User user = userMapper.toEntity(userDto);
-    return userMapper.toDto(userService.save(user));
+  public UserDto create(@Valid @RequestBody UserDto dto) {
+    return userMapper.toDto(userService.create(dto));
   }
 
   @PutMapping("/{id}")
   @Operation(summary = "Обновить пользователя")
-  public UserDto update(@PathVariable Long id, @Valid @RequestBody UserDto userDto) {
-    User user = userMapper.toEntity(userDto);
-    user.setId(id);
-    return userMapper.toDto(userService.save(user));
+  public UserDto update(@PathVariable Long id, @Valid @RequestBody UserDto dto) {
+    return userMapper.toDto(userService.update(id, dto));
   }
 
   @PatchMapping("/bulk")
   @Operation(summary = "Массовое частичное обновление пользователей")
   public List<UserDto> patchBulk(@RequestBody List<UserDto> dtos) {
-    List<User> updatedUsers = userService.patchBulk(dtos);
-    return updatedUsers.stream().map(userMapper::toDto).toList();
+    return userService.patchBulk(dtos).stream()
+        .map(userMapper::toDto)
+        .toList();
   }
 
   @DeleteMapping("/{id}")

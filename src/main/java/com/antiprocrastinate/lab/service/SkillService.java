@@ -40,62 +40,58 @@ public class SkillService {
 
   @CachePut(value = "skill_item", key = "#result.id")
   @Transactional
-  public Skill save(Skill skill) {
-    return skillRepository.save(skill);
+  public Skill create(SkillDto dto) {
+    return skillRepository.save(skillMapper.toEntity(dto));
   }
 
-  @CacheEvict(value = "skill_item", allEntries = true)
+  @CachePut(value = "skill_item", key = "#id")
   @Transactional
-  public List<Skill> saveAll(List<Skill> skills) {
-    return skillRepository.saveAll(skills);
+  public Skill update(Long id, SkillDto dto) {
+    Skill existing = skillRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Skill not found with id: " + id));
+    skillMapper.updateEntityFromDto(dto, existing);
+    return skillRepository.save(existing);
   }
 
   @CacheEvict(value = "skill_item", allEntries = true)
   @Transactional
   public List<Skill> patchBulk(List<SkillDto> dtos) {
     List<Long> ids = dtos.stream().map(SkillDto::getId).toList();
-    List<Skill> existingSkills = skillRepository.findAllById(ids);
-
-    if (existingSkills.size() != ids.size()) {
-      throw new ResourceNotFoundException("Один или несколько навыков не найдены");
+    List<Skill> entities = skillRepository.findAllById(ids);
+    if (entities.size() != ids.size()) {
+      throw new ResourceNotFoundException("One or more skills not found");
     }
-
-    Map<Long, SkillDto> dtoMap = dtos.stream()
-        .collect(Collectors.toMap(SkillDto::getId, dto -> dto));
-
-    existingSkills.forEach(existing -> {
-      SkillDto dto = dtoMap.get(existing.getId());
-      skillMapper.updateEntityFromDto(dto, existing);
-    });
-
-    return skillRepository.saveAll(existingSkills);
+    Map<Long, SkillDto> dtoMap = dtos.stream().collect(Collectors.toMap(SkillDto::getId, d -> d));
+    entities.forEach(e -> skillMapper.updateEntityFromDto(dtoMap.get(e.getId()), e));
+    return skillRepository.saveAll(entities);
   }
 
   @CacheEvict(value = "skill_item", key = "#id")
   @Transactional
   public void deleteById(Long id) {
-    Skill skill = skillRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Skill not found with id: " + id));
-
-    skill.getTasks().forEach(task -> task.getSkills().remove(skill));
-
-    Map<Boolean, List<Task>> partitionedTasks = skill.getTasks().stream()
-        .collect(Collectors.partitioningBy(task -> task.getSkills().isEmpty()));
-
-    if (!partitionedTasks.get(true).isEmpty()) {
-      taskRepository.deleteAll(partitionedTasks.get(true));
-    }
-
-    if (!partitionedTasks.get(false).isEmpty()) {
-      taskRepository.saveAll(partitionedTasks.get(false));
-    }
-
-    skillRepository.delete(skill);
+    deleteInternal(id);
   }
 
   @CacheEvict(value = "skill_item", allEntries = true)
   @Transactional
   public void deleteAll(List<Long> ids) {
-    ids.forEach(this::deleteById);
+    for (Long id : ids) {
+      deleteInternal(id);
+    }
+  }
+
+  private void deleteInternal(Long id) {
+    Skill skill = skillRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Skill not found with id: " + id));
+    skill.getTasks().forEach(t -> t.getSkills().remove(skill));
+    Map<Boolean, List<Task>> partitioned = skill.getTasks().stream()
+        .collect(Collectors.partitioningBy(t -> t.getSkills().isEmpty()));
+    if (!partitioned.get(true).isEmpty()) {
+      taskRepository.deleteAll(partitioned.get(true));
+    }
+    if (!partitioned.get(false).isEmpty()) {
+      taskRepository.saveAll(partitioned.get(false));
+    }
+    skillRepository.delete(skill);
   }
 }

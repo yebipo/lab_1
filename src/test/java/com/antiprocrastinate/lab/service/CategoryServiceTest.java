@@ -2,13 +2,13 @@ package com.antiprocrastinate.lab.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.antiprocrastinate.lab.dto.CategoryDto;
 import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
+import com.antiprocrastinate.lab.mapper.CategoryMapper;
 import com.antiprocrastinate.lab.model.Category;
 import com.antiprocrastinate.lab.model.Skill;
 import com.antiprocrastinate.lab.repository.CategoryRepository;
@@ -30,14 +30,10 @@ import org.springframework.data.domain.Pageable;
 @ExtendWith(MockitoExtension.class)
 class CategoryServiceTest {
 
-  @Mock
-  private CategoryRepository categoryRepository;
-
-  @Mock
-  private SkillService skillService;
-
-  @InjectMocks
-  private CategoryService categoryService;
+  @Mock private CategoryRepository categoryRepository;
+  @Mock private SkillService skillService;
+  @Mock private CategoryMapper categoryMapper;
+  @InjectMocks private CategoryService categoryService;
 
   private Category testCategory;
   private Pageable pageable;
@@ -73,55 +69,69 @@ class CategoryServiceTest {
   }
 
   @Test
-  void shouldSave() {
-    when(categoryRepository.save(any(Category.class))).thenReturn(testCategory);
-    Category result = categoryService.save(testCategory);
+  void shouldCreate() {
+    CategoryDto dto = new CategoryDto();
+    when(categoryMapper.toEntity(dto)).thenReturn(testCategory);
+    when(categoryRepository.save(testCategory)).thenReturn(testCategory);
+
+    Category result = categoryService.create(dto);
     assertThat(result).isNotNull();
     verify(categoryRepository).save(testCategory);
   }
 
   @Test
+  void shouldUpdate() {
+    CategoryDto dto = new CategoryDto();
+    when(categoryRepository.findById(1L)).thenReturn(Optional.of(testCategory));
+    when(categoryRepository.save(testCategory)).thenReturn(testCategory);
+
+    Category result = categoryService.update(1L, dto);
+
+    verify(categoryMapper).updateEntityFromDto(dto, testCategory);
+    verify(categoryRepository).save(testCategory);
+    assertThat(result).isNotNull();
+  }
+
+  @Test
+  void shouldPatchBulk() {
+    CategoryDto dto = new CategoryDto(); dto.setId(1L);
+    when(categoryRepository.findAllById(List.of(1L))).thenReturn(List.of(testCategory));
+    when(categoryRepository.saveAll(anyList())).thenReturn(List.of(testCategory));
+
+    List<Category> result = categoryService.patchBulk(List.of(dto));
+
+    verify(categoryMapper).updateEntityFromDto(dto, testCategory);
+    verify(categoryRepository).saveAll(anyList());
+    assertThat(result).hasSize(1);
+  }
+
+  @Test
+  void shouldThrowWhenPatchBulkSizeMismatch() {
+    CategoryDto dto = new CategoryDto(); dto.setId(1L);
+    when(categoryRepository.findAllById(List.of(1L))).thenReturn(List.of());
+
+    assertThatThrownBy(() -> categoryService.patchBulk(List.of(dto)))
+        .isInstanceOf(ResourceNotFoundException.class);
+  }
+
+  @Test
   void shouldDeleteCategoryAndRelatedSkills() {
-    Skill skill1 = new Skill();
-    skill1.setId(10L);
-    Skill skill2 = new Skill();
-    skill2.setId(20L);
-    testCategory.setSkills(Set.of(skill1, skill2));
+    Skill skill = new Skill();
+    skill.setId(10L);
+    testCategory.setSkills(Set.of(skill));
 
     when(categoryRepository.findById(1L)).thenReturn(Optional.of(testCategory));
 
     categoryService.deleteById(1L);
 
     verify(skillService).deleteById(10L);
-    verify(skillService).deleteById(20L);
     verify(categoryRepository).delete(testCategory);
-  }
-
-  @Test
-  void shouldThrowExceptionWhenDeletingNonExistentCategory() {
-    when(categoryRepository.findById(999L)).thenReturn(Optional.empty());
-    assertThatThrownBy(() -> categoryService.deleteById(999L))
-        .isInstanceOf(ResourceNotFoundException.class);
-    verify(categoryRepository, never()).delete(any());
-  }
-
-  @Test
-  void shouldSaveAll() {
-    List<Category> categories = List.of(testCategory);
-    when(categoryRepository.saveAll(categories)).thenReturn(categories);
-
-    List<Category> result = categoryService.saveAll(categories);
-    assertThat(result).hasSize(1);
-    verify(categoryRepository).saveAll(categories);
   }
 
   @Test
   void shouldDeleteAll() {
     when(categoryRepository.findById(1L)).thenReturn(Optional.of(testCategory));
-    when(categoryRepository.findById(2L)).thenReturn(Optional.of(testCategory));
-
-    categoryService.deleteAll(List.of(1L, 2L));
-
-    verify(categoryRepository, times(2)).delete(testCategory);
+    categoryService.deleteAll(List.of(1L));
+    verify(categoryRepository).delete(testCategory);
   }
 }

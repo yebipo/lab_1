@@ -2,7 +2,6 @@ package com.antiprocrastinate.lab.controller;
 
 import com.antiprocrastinate.lab.dto.CategoryDto;
 import com.antiprocrastinate.lab.mapper.CategoryMapper;
-import com.antiprocrastinate.lab.model.Category;
 import com.antiprocrastinate.lab.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -48,24 +47,22 @@ public class CategoryController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(summary = "Создать новую категорию")
-  public CategoryDto create(@Valid @RequestBody CategoryDto categoryDto) {
-    Category category = categoryMapper.toEntity(categoryDto);
-    return categoryMapper.toDto(categoryService.save(category));
+  public CategoryDto create(@Valid @RequestBody CategoryDto dto) {
+    return categoryMapper.toDto(categoryService.create(dto));
   }
 
   @PutMapping("/{id}")
   @Operation(summary = "Обновить категорию")
-  public CategoryDto update(@PathVariable Long id, @Valid @RequestBody CategoryDto categoryDto) {
-    Category category = categoryMapper.toEntity(categoryDto);
-    category.setId(id);
-    return categoryMapper.toDto(categoryService.save(category));
+  public CategoryDto update(@PathVariable Long id, @Valid @RequestBody CategoryDto dto) {
+    return categoryMapper.toDto(categoryService.update(id, dto));
   }
 
   @PatchMapping("/bulk")
   @Operation(summary = "Массовое частичное обновление категорий")
   public List<CategoryDto> patchBulk(@RequestBody List<CategoryDto> dtos) {
-    List<Category> updatedCategories = categoryService.patchBulk(dtos);
-    return updatedCategories.stream().map(categoryMapper::toDto).toList();
+    return categoryService.patchBulk(dtos).stream()
+        .map(categoryMapper::toDto)
+        .toList();
   }
 
   @DeleteMapping("/{id}")

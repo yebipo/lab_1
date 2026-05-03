@@ -1,43 +1,27 @@
 package com.antiprocrastinate.lab.repository;
 
 import com.antiprocrastinate.lab.model.Task;
-import java.util.Optional;
-import org.jspecify.annotations.NullMarked;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@NullMarked
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
-  @Override
-  @EntityGraph(attributePaths = {"user"})
-  Page<Task> findAll(Pageable pageable);
-
-  @Override
-  @EntityGraph(attributePaths = {"user", "skills", "workLogs"})
-  Optional<Task> findById(Long id);
-
-  @EntityGraph(attributePaths = {"user", "skills"})
-  @Query("SELECT t FROM Task t JOIN t.skills s "
-      + "WHERE t.user.id = :userId AND s.id = :skillId")
+  @Query("SELECT t FROM Task t JOIN t.skills s WHERE t.user.id = :userId AND s.id = :skillId")
   Page<Task> findTasksByUserAndSkillJpql(
       @Param("userId") Long userId,
       @Param("skillId") Long skillId,
       Pageable pageable);
 
   @Query(
-      value = "SELECT t.* FROM tasks t JOIN task_skills ts ON t.id = ts.task_id "
-          + "WHERE t.user_id = :userId AND ts.skill_id = :skillId",
-      countQuery = "SELECT count(*) FROM tasks t JOIN task_skills ts ON t.id = ts.task_id "
-          + "WHERE t.user_id = :userId AND ts.skill_id = :skillId",
-      nativeQuery = true
-  )
+      value = "SELECT t.* FROM tasks t " +
+          "JOIN task_skills ts ON t.id = ts.task_id " +
+          "WHERE t.user_id = :userId AND ts.skill_id = :skillId",
+      nativeQuery = true)
   Page<Task> findTasksByUserAndSkillNative(
       @Param("userId") Long userId,
       @Param("skillId") Long skillId,

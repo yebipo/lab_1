@@ -37,14 +37,18 @@ public class UserService {
 
   @CachePut(value = "user_item", key = "#result.id")
   @Transactional
-  public User save(User user) {
+  public User create(UserDto dto) {
+    User user = userMapper.toEntity(dto);
     return userRepository.save(user);
   }
 
-  @CacheEvict(value = "user_item", allEntries = true)
+  @CachePut(value = "user_item", key = "#id")
   @Transactional
-  public List<User> saveAll(List<User> users) {
-    return userRepository.saveAll(users);
+  public User update(Long id, UserDto dto) {
+    User existing = userRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+    userMapper.updateEntityFromDto(dto, existing);
+    return userRepository.save(existing);
   }
 
   @CacheEvict(value = "user_item", allEntries = true)

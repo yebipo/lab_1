@@ -2,7 +2,6 @@ package com.antiprocrastinate.lab.controller;
 
 import com.antiprocrastinate.lab.dto.TaskDto;
 import com.antiprocrastinate.lab.mapper.TaskMapper;
-import com.antiprocrastinate.lab.model.Task;
 import com.antiprocrastinate.lab.service.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -54,31 +53,29 @@ public class TaskController {
       @ParameterObject @PageableDefault Pageable pageable,
       @RequestParam(defaultValue = "false") boolean useNative
   ) {
-    Page<Task> tasks = taskService.getTasksFiltered(userId, skillId, pageable, useNative);
-    return tasks.map(taskMapper::toDto);
+    return taskService.getTasksFiltered(userId, skillId, pageable, useNative)
+        .map(taskMapper::toDto);
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(summary = "Создать новую задачу")
   public TaskDto create(@Valid @RequestBody TaskDto dto) {
-    Task task = taskMapper.toEntity(dto);
-    return taskMapper.toDto(taskService.save(task));
+    return taskMapper.toDto(taskService.create(dto));
   }
 
   @PutMapping("/{id}")
   @Operation(summary = "Обновить существующую задачу")
   public TaskDto update(@PathVariable Long id, @Valid @RequestBody TaskDto dto) {
-    Task task = taskMapper.toEntity(dto);
-    task.setId(id);
-    return taskMapper.toDto(taskService.save(task));
+    return taskMapper.toDto(taskService.update(id, dto));
   }
 
   @PatchMapping("/bulk")
   @Operation(summary = "Массовое частичное обновление задач")
   public List<TaskDto> patchBulk(@RequestBody List<TaskDto> dtos) {
-    List<Task> updatedTasks = taskService.patchBulk(dtos);
-    return updatedTasks.stream().map(taskMapper::toDto).toList();
+    return taskService.patchBulk(dtos).stream()
+        .map(taskMapper::toDto)
+        .toList();
   }
 
   @DeleteMapping("/{id}")

@@ -27,21 +27,16 @@ public interface TaskMapper {
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
   void updateEntityFromDto(TaskDto dto, @MappingTarget Task task);
 
-  @SuppressWarnings("unused")
   default Long skillToId(Skill skill) {
-    if (skill == null) {
-      return null;
-    }
-    return skill.getId();
+    return skill != null ? skill.getId() : null;
   }
 
-  @SuppressWarnings("unused")
   default Skill idToSkill(Long id) {
     if (id == null) {
       return null;
     }
-    Skill skill = new Skill();
-    skill.setId(id);
-    return skill;
+    Skill s = new Skill();
+    s.setId(id);
+    return s;
   }
 }

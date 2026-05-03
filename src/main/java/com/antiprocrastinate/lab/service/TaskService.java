@@ -37,14 +37,17 @@ public class TaskService {
 
   @CachePut(value = "task_item", key = "#result.id")
   @Transactional
-  public Task save(Task task) {
-    return taskRepo.save(task);
+  public Task create(TaskDto dto) {
+    return taskRepo.save(taskMapper.toEntity(dto));
   }
 
-  @CacheEvict(value = "task_item", allEntries = true)
+  @CachePut(value = "task_item", key = "#id")
   @Transactional
-  public List<Task> saveAll(List<Task> tasks) {
-    return taskRepo.saveAll(tasks);
+  public Task update(Long id, TaskDto dto) {
+    Task existing = taskRepo.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + id));
+    taskMapper.updateEntityFromDto(dto, existing);
+    return taskRepo.save(existing);
   }
 
   @CacheEvict(value = "task_item", allEntries = true)
@@ -52,40 +55,36 @@ public class TaskService {
   public List<Task> patchBulk(List<TaskDto> dtos) {
     List<Long> ids = dtos.stream().map(TaskDto::getId).toList();
     List<Task> existingTasks = taskRepo.findAllById(ids);
-
     if (existingTasks.size() != ids.size()) {
-      throw new ResourceNotFoundException("Одна или несколько задач не найдены");
+      throw new ResourceNotFoundException("One or more tasks not found");
     }
-
-    Map<Long, TaskDto> dtoMap = dtos.stream()
-        .collect(Collectors.toMap(TaskDto::getId, dto -> dto));
-
-    existingTasks.forEach(existing -> {
-      TaskDto dto = dtoMap.get(existing.getId());
-      taskMapper.updateEntityFromDto(dto, existing);
-    });
-
+    Map<Long, TaskDto> dtoMap = dtos.stream().collect(Collectors.toMap(TaskDto::getId, d -> d));
+    existingTasks.forEach(e -> taskMapper.updateEntityFromDto(dtoMap.get(e.getId()), e));
     return taskRepo.saveAll(existingTasks);
   }
 
   @CacheEvict(value = "task_item", key = "#id")
   @Transactional
   public void deleteById(Long id) {
-    Task task = taskRepo.findById(id)
-        .orElseThrow(() ->
-            new ResourceNotFoundException("Cannot delete: Task not found with id: " + id));
-    taskRepo.delete(task);
+    deleteInternal(id);
   }
 
   @CacheEvict(value = "task_item", allEntries = true)
   @Transactional
   public void deleteAll(List<Long> ids) {
-    ids.forEach(this::deleteById);
+    for (Long id : ids) {
+      deleteInternal(id);
+    }
+  }
+
+  private void deleteInternal(Long id) {
+    Task task = taskRepo.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + id));
+    taskRepo.delete(task);
   }
 
   @Transactional(readOnly = true)
-  public Page<Task> getTasksFiltered(
-      Long userId, Long skillId, Pageable pageable, boolean useNative) {
+  public Page<Task> getTasksFiltered(Long userId, Long skillId, Pageable pageable, boolean useNative) {
     return useNative
         ? taskRepo.findTasksByUserAndSkillNative(userId, skillId, pageable)
         : taskRepo.findTasksByUserAndSkillJpql(userId, skillId, pageable);

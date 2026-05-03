@@ -10,8 +10,9 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(componentModel = "spring")
 public interface WorkLogMapper {
+
   @Mapping(source = "task.id", target = "taskId")
-  WorkLogDto toDto(WorkLog log);
+  WorkLogDto toDto(WorkLog workLog);
 
   @Mapping(source = "taskId", target = "task.id")
   WorkLog toEntity(WorkLogDto dto);
@@ -19,5 +20,5 @@ public interface WorkLogMapper {
   @Mapping(source = "taskId", target = "task.id",
       nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-  void updateEntityFromDto(WorkLogDto dto, @MappingTarget WorkLog log);
+  void updateEntityFromDto(WorkLogDto dto, @MappingTarget WorkLog workLog);
 }

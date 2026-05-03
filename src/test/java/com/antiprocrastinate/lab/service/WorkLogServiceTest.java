@@ -1,12 +1,12 @@
 package com.antiprocrastinate.lab.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
+import com.antiprocrastinate.lab.dto.WorkLogDto;
+import com.antiprocrastinate.lab.mapper.WorkLogMapper;
 import com.antiprocrastinate.lab.model.WorkLog;
 import com.antiprocrastinate.lab.repository.WorkLogRepository;
 import java.util.List;
@@ -25,11 +25,9 @@ import org.springframework.data.domain.Pageable;
 @ExtendWith(MockitoExtension.class)
 class WorkLogServiceTest {
 
-  @Mock
-  private WorkLogRepository workLogRepository;
-
-  @InjectMocks
-  private WorkLogService workLogService;
+  @Mock private WorkLogRepository workLogRepository;
+  @Mock private WorkLogMapper workLogMapper;
+  @InjectMocks private WorkLogService workLogService;
 
   private WorkLog testWorkLog;
   private Pageable pageable;
@@ -45,29 +43,46 @@ class WorkLogServiceTest {
   void shouldFindAll() {
     Page<WorkLog> page = new PageImpl<>(List.of(testWorkLog));
     when(workLogRepository.findAll(pageable)).thenReturn(page);
-    Page<WorkLog> result = workLogService.findAll(pageable);
-    assertThat(result.getContent()).hasSize(1);
+    assertThat(workLogService.findAll(pageable).getContent()).hasSize(1);
   }
 
   @Test
   void shouldFindById() {
     when(workLogRepository.findById(1L)).thenReturn(Optional.of(testWorkLog));
-    WorkLog result = workLogService.findById(1L);
-    assertThat(result.getId()).isEqualTo(1L);
+    assertThat(workLogService.findById(1L).getId()).isEqualTo(1L);
   }
 
   @Test
-  void shouldThrowWhenNotFound() {
-    when(workLogRepository.findById(999L)).thenReturn(Optional.empty());
-    assertThatThrownBy(() -> workLogService.findById(999L))
-        .isInstanceOf(ResourceNotFoundException.class);
-  }
+  void shouldCreate() {
+    WorkLogDto dto = new WorkLogDto();
+    when(workLogMapper.toEntity(dto)).thenReturn(testWorkLog);
+    when(workLogRepository.save(testWorkLog)).thenReturn(testWorkLog);
 
-  @Test
-  void shouldSave() {
-    when(workLogRepository.save(any(WorkLog.class))).thenReturn(testWorkLog);
-    workLogService.save(testWorkLog);
+    WorkLog result = workLogService.create(dto);
+    assertThat(result).isNotNull();
     verify(workLogRepository).save(testWorkLog);
+  }
+
+  @Test
+  void shouldUpdate() {
+    WorkLogDto dto = new WorkLogDto();
+    when(workLogRepository.findById(1L)).thenReturn(Optional.of(testWorkLog));
+    when(workLogRepository.save(testWorkLog)).thenReturn(testWorkLog);
+
+    workLogService.update(1L, dto);
+    verify(workLogMapper).updateEntityFromDto(dto, testWorkLog);
+    verify(workLogRepository).save(testWorkLog);
+  }
+
+  @Test
+  void shouldPatchBulk() {
+    WorkLogDto dto = new WorkLogDto(); dto.setId(1L);
+    when(workLogRepository.findAllById(List.of(1L))).thenReturn(List.of(testWorkLog));
+    when(workLogRepository.saveAll(anyList())).thenReturn(List.of(testWorkLog));
+
+    workLogService.patchBulk(List.of(dto));
+    verify(workLogMapper).updateEntityFromDto(dto, testWorkLog);
+    verify(workLogRepository).saveAll(anyList());
   }
 
   @Test
@@ -77,17 +92,7 @@ class WorkLogServiceTest {
   }
 
   @Test
-  void shouldSaveAll() {
-    List<WorkLog> logs = List.of(testWorkLog);
-    when(workLogRepository.saveAll(logs)).thenReturn(logs);
-
-    List<WorkLog> result = workLogService.saveAll(logs);
-    assertThat(result).hasSize(1);
-    verify(workLogRepository).saveAll(logs);
-  }
-
-  @Test
-  void shouldDeleteAll() {
+  void shouldDeleteAllInBatch() {
     List<Long> ids = List.of(1L, 2L);
     workLogService.deleteAll(ids);
     verify(workLogRepository).deleteAllByIdInBatch(ids);

@@ -37,35 +37,31 @@ public class WorkLogService {
 
   @CachePut(value = "worklog_item", key = "#result.id")
   @Transactional
-  public WorkLog save(WorkLog workLog) {
-    return workLogRepository.save(workLog);
+  public WorkLog create(WorkLogDto dto) {
+    return workLogRepository.save(workLogMapper.toEntity(dto));
   }
 
-  @CacheEvict(value = "worklog_item", allEntries = true)
+  @CachePut(value = "worklog_item", key = "#id")
   @Transactional
-  public List<WorkLog> saveAll(List<WorkLog> workLogs) {
-    return workLogRepository.saveAll(workLogs);
+  public WorkLog update(Long id, WorkLogDto dto) {
+    WorkLog existing = workLogRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("WorkLog not found with id: " + id));
+    workLogMapper.updateEntityFromDto(dto, existing);
+    return workLogRepository.save(existing);
   }
 
   @CacheEvict(value = "worklog_item", allEntries = true)
   @Transactional
   public List<WorkLog> patchBulk(List<WorkLogDto> dtos) {
     List<Long> ids = dtos.stream().map(WorkLogDto::getId).toList();
-    List<WorkLog> existingLogs = workLogRepository.findAllById(ids);
-
-    if (existingLogs.size() != ids.size()) {
-      throw new ResourceNotFoundException("Один или несколько логов не найдены");
+    List<WorkLog> entities = workLogRepository.findAllById(ids);
+    if (entities.size() != ids.size()) {
+      throw new ResourceNotFoundException("One or more logs not found");
     }
-
-    Map<Long, WorkLogDto> dtoMap = dtos.stream()
-        .collect(Collectors.toMap(WorkLogDto::getId, dto -> dto));
-
-    existingLogs.forEach(existing -> {
-      WorkLogDto dto = dtoMap.get(existing.getId());
-      workLogMapper.updateEntityFromDto(dto, existing);
-    });
-
-    return workLogRepository.saveAll(existingLogs);
+    Map<Long, WorkLogDto> dtoMap = dtos.stream().collect(
+        Collectors.toMap(WorkLogDto::getId, d -> d));
+    entities.forEach(e -> workLogMapper.updateEntityFromDto(dtoMap.get(e.getId()), e));
+    return workLogRepository.saveAll(entities);
   }
 
   @CacheEvict(value = "worklog_item", key = "#id")

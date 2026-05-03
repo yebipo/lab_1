@@ -39,14 +39,19 @@ public class CategoryService {
 
   @CachePut(value = "category_item", key = "#result.id")
   @Transactional
-  public Category save(Category category) {
+  public Category create(CategoryDto dto) {
+    Category category = categoryMapper.toEntity(dto);
     return categoryRepository.save(category);
   }
 
-  @CacheEvict(value = "category_item", allEntries = true)
+  @CachePut(value = "category_item", key = "#id")
   @Transactional
-  public List<Category> saveAll(List<Category> categories) {
-    return categoryRepository.saveAll(categories);
+  public Category update(Long id, CategoryDto dto) {
+    Category existing = categoryRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
+
+    categoryMapper.updateEntityFromDto(dto, existing);
+    return categoryRepository.save(existing);
   }
 
   @CacheEvict(value = "category_item", allEntries = true)
@@ -73,6 +78,18 @@ public class CategoryService {
   @CacheEvict(value = "category_item", key = "#id")
   @Transactional
   public void deleteById(Long id) {
+    deleteInternal(id);
+  }
+
+  @CacheEvict(value = "category_item", allEntries = true)
+  @Transactional
+  public void deleteAll(List<Long> ids) {
+    for (Long id : ids) {
+      deleteInternal(id);
+    }
+  }
+
+  private void deleteInternal(Long id) {
     Category category = categoryRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
 
@@ -81,11 +98,5 @@ public class CategoryService {
         .forEach(skillService::deleteById);
 
     categoryRepository.delete(category);
-  }
-
-  @CacheEvict(value = "category_item", allEntries = true)
-  @Transactional
-  public void deleteAll(List<Long> ids) {
-    ids.forEach(this::deleteById);
   }
 }
