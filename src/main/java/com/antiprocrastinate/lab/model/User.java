@@ -26,6 +26,7 @@ public class User {
 
   private String username;
   private String email;
+  private String password; // СЮДА ДОБАВИЛИ ПАРОЛЬ
   private Integer level;
   private String levelUrl;
   private Integer dailyGoalMinutes;

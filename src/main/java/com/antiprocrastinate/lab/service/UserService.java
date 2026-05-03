@@ -9,6 +9,7 @@ import com.antiprocrastinate.lab.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder; // ИМПОРТ
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
   private final UserRepository userRepository;
   private final UserMapper userMapper;
+  private final PasswordEncoder passwordEncoder; // ВНЕДРЯЕМ БИН
 
   @Transactional(readOnly = true)
   public Page<UserResponseDto> findAll(Pageable pageable) {
@@ -32,14 +34,22 @@ public class UserService {
 
   @Transactional
   public UserResponseDto create(UserCreateDto dto) {
-    return userMapper.toResponseDto(userRepository.save(userMapper.toEntity(dto)));
+    User user = userMapper.toEntity(dto);
+    user.setPassword(passwordEncoder.encode(dto.getPassword()));
+    return userMapper.toResponseDto(userRepository.save(user));
   }
 
   @Transactional
   public UserResponseDto update(Long id, UserCreateDto dto) {
     User existing = userRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
+
     userMapper.updateEntity(dto, existing);
+
+    if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+      existing.setPassword(passwordEncoder.encode(dto.getPassword()));
+    }
+
     return userMapper.toResponseDto(userRepository.save(existing));
   }
 
