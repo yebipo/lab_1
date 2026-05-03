@@ -7,7 +7,6 @@ import com.antiprocrastinate.lab.service.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -83,33 +81,5 @@ public class TaskController {
   @Operation(summary = "Удалить задачу")
   public void delete(@PathVariable Long id) {
     taskService.deleteById(id);
-  }
-
-  @PostMapping("/bulk")
-  @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Массовое создание задач")
-  public List<TaskDto> createBulk(@Valid @RequestBody List<TaskDto> dtos) {
-    List<Task> tasks = dtos.stream().map(taskMapper::toEntity).toList();
-    return taskService.saveAll(tasks).stream().map(taskMapper::toDto).toList();
-  }
-
-  @PutMapping("/bulk")
-  @Operation(summary = "Массовое обновление задач (полное)")
-  public List<TaskDto> updateBulk(@Valid @RequestBody List<TaskDto> dtos) {
-    List<Task> tasks = dtos.stream().map(taskMapper::toEntity).toList();
-    return taskService.saveAll(tasks).stream().map(taskMapper::toDto).toList();
-  }
-
-  @PatchMapping("/bulk")
-  @Operation(summary = "Массовое обновление задач (частичное)")
-  public List<TaskDto> patchBulk(@RequestBody List<TaskDto> dtos) {
-    return taskService.patchBulk(dtos).stream().map(taskMapper::toDto).toList();
-  }
-
-  @DeleteMapping("/bulk")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(summary = "Массовое удаление задач")
-  public void deleteBulk(@RequestBody List<Long> ids) {
-    taskService.deleteAll(ids);
   }
 }

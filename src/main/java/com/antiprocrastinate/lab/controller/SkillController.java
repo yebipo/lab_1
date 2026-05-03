@@ -7,14 +7,12 @@ import com.antiprocrastinate.lab.service.SkillService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -68,33 +66,5 @@ public class SkillController {
   @Operation(summary = "Удалить навык")
   public void delete(@PathVariable Long id) {
     skillService.deleteById(id);
-  }
-
-  @PostMapping("/bulk")
-  @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Массовое создание навыков")
-  public List<SkillDto> createBulk(@Valid @RequestBody List<SkillDto> dtos) {
-    List<Skill> skills = dtos.stream().map(skillMapper::toEntity).toList();
-    return skillService.saveAll(skills).stream().map(skillMapper::toDto).toList();
-  }
-
-  @PutMapping("/bulk")
-  @Operation(summary = "Массовое обновление навыков (полное)")
-  public List<SkillDto> updateBulk(@Valid @RequestBody List<SkillDto> dtos) {
-    List<Skill> skills = dtos.stream().map(skillMapper::toEntity).toList();
-    return skillService.saveAll(skills).stream().map(skillMapper::toDto).toList();
-  }
-
-  @PatchMapping("/bulk")
-  @Operation(summary = "Массовое обновление навыков (частичное)")
-  public List<SkillDto> patchBulk(@RequestBody List<SkillDto> dtos) {
-    return skillService.patchBulk(dtos).stream().map(skillMapper::toDto).toList();
-  }
-
-  @DeleteMapping("/bulk")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(summary = "Массовое удаление навыков")
-  public void deleteBulk(@RequestBody List<Long> ids) {
-    skillService.deleteAll(ids);
   }
 }

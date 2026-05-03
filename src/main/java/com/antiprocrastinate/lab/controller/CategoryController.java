@@ -7,14 +7,12 @@ import com.antiprocrastinate.lab.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -68,33 +66,5 @@ public class CategoryController {
   @Operation(summary = "Удалить категорию")
   public void delete(@PathVariable Long id) {
     categoryService.deleteById(id);
-  }
-
-  @PostMapping("/bulk")
-  @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Массовое создание категорий")
-  public List<CategoryDto> createBulk(@Valid @RequestBody List<CategoryDto> dtos) {
-    List<Category> categories = dtos.stream().map(categoryMapper::toEntity).toList();
-    return categoryService.saveAll(categories).stream().map(categoryMapper::toDto).toList();
-  }
-
-  @PutMapping("/bulk")
-  @Operation(summary = "Массовое обновление категорий (полное)")
-  public List<CategoryDto> updateBulk(@Valid @RequestBody List<CategoryDto> dtos) {
-    List<Category> categories = dtos.stream().map(categoryMapper::toEntity).toList();
-    return categoryService.saveAll(categories).stream().map(categoryMapper::toDto).toList();
-  }
-
-  @PatchMapping("/bulk")
-  @Operation(summary = "Массовое обновление категорий (частичное)")
-  public List<CategoryDto> patchBulk(@RequestBody List<CategoryDto> dtos) {
-    return categoryService.patchBulk(dtos).stream().map(categoryMapper::toDto).toList();
-  }
-
-  @DeleteMapping("/bulk")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(summary = "Массовое удаление категорий")
-  public void deleteBulk(@RequestBody List<Long> ids) {
-    categoryService.deleteAll(ids);
   }
 }

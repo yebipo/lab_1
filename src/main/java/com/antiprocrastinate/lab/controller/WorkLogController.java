@@ -7,14 +7,12 @@ import com.antiprocrastinate.lab.service.WorkLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -68,33 +66,5 @@ public class WorkLogController {
   @Operation(summary = "Удалить лог работы")
   public void delete(@PathVariable Long id) {
     workLogService.deleteById(id);
-  }
-
-  @PostMapping("/bulk")
-  @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Массовое создание логов работы")
-  public List<WorkLogDto> createBulk(@Valid @RequestBody List<WorkLogDto> dtos) {
-    List<WorkLog> logs = dtos.stream().map(workLogMapper::toEntity).toList();
-    return workLogService.saveAll(logs).stream().map(workLogMapper::toDto).toList();
-  }
-
-  @PutMapping("/bulk")
-  @Operation(summary = "Массовое обновление логов работы (полное)")
-  public List<WorkLogDto> updateBulk(@Valid @RequestBody List<WorkLogDto> dtos) {
-    List<WorkLog> logs = dtos.stream().map(workLogMapper::toEntity).toList();
-    return workLogService.saveAll(logs).stream().map(workLogMapper::toDto).toList();
-  }
-
-  @PatchMapping("/bulk")
-  @Operation(summary = "Массовое обновление логов работы (частичное)")
-  public List<WorkLogDto> patchBulk(@RequestBody List<WorkLogDto> dtos) {
-    return workLogService.patchBulk(dtos).stream().map(workLogMapper::toDto).toList();
-  }
-
-  @DeleteMapping("/bulk")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(summary = "Массовое удаление логов работы")
-  public void deleteBulk(@RequestBody List<Long> ids) {
-    workLogService.deleteAll(ids);
   }
 }

@@ -7,14 +7,12 @@ import com.antiprocrastinate.lab.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -68,33 +66,5 @@ public class UserController {
   @Operation(summary = "Удалить пользователя")
   public void delete(@PathVariable Long id) {
     userService.deleteById(id);
-  }
-
-  @PostMapping("/bulk")
-  @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Массовое создание пользователей")
-  public List<UserDto> createBulk(@Valid @RequestBody List<UserDto> dtos) {
-    List<User> users = dtos.stream().map(userMapper::toEntity).toList();
-    return userService.saveAll(users).stream().map(userMapper::toDto).toList();
-  }
-
-  @PutMapping("/bulk")
-  @Operation(summary = "Массовое обновление пользователей (полное)")
-  public List<UserDto> updateBulk(@Valid @RequestBody List<UserDto> dtos) {
-    List<User> users = dtos.stream().map(userMapper::toEntity).toList();
-    return userService.saveAll(users).stream().map(userMapper::toDto).toList();
-  }
-
-  @PatchMapping("/bulk")
-  @Operation(summary = "Массовое обновление пользователей (частичное)")
-  public List<UserDto> patchBulk(@RequestBody List<UserDto> dtos) {
-    return userService.patchBulk(dtos).stream().map(userMapper::toDto).toList();
-  }
-
-  @DeleteMapping("/bulk")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(summary = "Массовое удаление пользователей")
-  public void deleteBulk(@RequestBody List<Long> ids) {
-    userService.deleteAll(ids);
   }
 }
