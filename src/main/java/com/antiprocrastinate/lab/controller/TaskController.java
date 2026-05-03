@@ -3,7 +3,6 @@ package com.antiprocrastinate.lab.controller;
 import com.antiprocrastinate.lab.dto.TaskDto;
 import com.antiprocrastinate.lab.mapper.TaskMapper;
 import com.antiprocrastinate.lab.model.Task;
-import com.antiprocrastinate.lab.model.TaskStatus;
 import com.antiprocrastinate.lab.service.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -104,23 +103,7 @@ public class TaskController {
   @PatchMapping("/bulk")
   @Operation(summary = "Массовое обновление задач (частичное)")
   public List<TaskDto> patchBulk(@RequestBody List<TaskDto> dtos) {
-    List<Task> tasks = dtos.stream().map(dto -> {
-      Task existing = taskService.findById(dto.getId());
-      if (dto.getTitle() != null) {
-        existing.setTitle(dto.getTitle());
-      }
-      if (dto.getDescription() != null) {
-        existing.setDescription(dto.getDescription());
-      }
-      if (dto.getStatus() != null) {
-        existing.setStatus(TaskStatus.valueOf(dto.getStatus()));
-      }
-      if (dto.getFocusScore() != null) {
-        existing.setFocusScore(dto.getFocusScore());
-      }
-      return existing;
-    }).toList();
-    return taskService.saveAll(tasks).stream().map(taskMapper::toDto).toList();
+    return taskService.patchBulk(dtos).stream().map(taskMapper::toDto).toList();
   }
 
   @DeleteMapping("/bulk")

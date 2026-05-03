@@ -88,17 +88,7 @@ public class SkillController {
   @PatchMapping("/bulk")
   @Operation(summary = "Массовое обновление навыков (частичное)")
   public List<SkillDto> patchBulk(@RequestBody List<SkillDto> dtos) {
-    List<Skill> skills = dtos.stream().map(dto -> {
-      Skill existing = skillService.findById(dto.getId());
-      if (dto.getName() != null) {
-        existing.setName(dto.getName());
-      }
-      if (dto.getIconUrl() != null) {
-        existing.setIconUrl(dto.getIconUrl());
-      }
-      return existing;
-    }).toList();
-    return skillService.saveAll(skills).stream().map(skillMapper::toDto).toList();
+    return skillService.patchBulk(dtos).stream().map(skillMapper::toDto).toList();
   }
 
   @DeleteMapping("/bulk")

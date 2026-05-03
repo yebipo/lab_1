@@ -1,5 +1,6 @@
 package com.antiprocrastinate.lab.service;
 
+import com.antiprocrastinate.lab.dto.SkillDto;
 import com.antiprocrastinate.lab.exception.ResourceNotFoundException;
 import com.antiprocrastinate.lab.model.Skill;
 import com.antiprocrastinate.lab.model.Task;
@@ -9,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,27 +23,59 @@ public class SkillService {
   private final SkillRepository skillRepository;
   private final TaskRepository taskRepository;
 
+  @Cacheable(value = "skills", key = "{#pageable.pageNumber, #pageable.pageSize}")
   @Transactional(readOnly = true)
   public Page<Skill> findAll(Pageable pageable) {
     return skillRepository.findAll(pageable);
   }
 
+  @Cacheable(value = "skills", key = "#id")
   @Transactional(readOnly = true)
   public Skill findById(Long id) {
     return skillRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Skill not found with id: " + id));
   }
 
+  @CacheEvict(value = "skills", allEntries = true)
   @Transactional
   public Skill save(Skill skill) {
     return skillRepository.save(skill);
   }
 
+  @CacheEvict(value = "skills", allEntries = true)
   @Transactional
   public List<Skill> saveAll(List<Skill> skills) {
     return skillRepository.saveAll(skills);
   }
 
+  @CacheEvict(value = "skills", allEntries = true)
+  @Transactional
+  public List<Skill> patchBulk(List<SkillDto> dtos) {
+    List<Long> ids = dtos.stream().map(SkillDto::getId).toList();
+    List<Skill> existingSkills = skillRepository.findAllById(ids);
+
+    if (existingSkills.size() != ids.size()) {
+      throw new ResourceNotFoundException("Один или несколько навыков не найдены");
+    }
+
+    Map<Long, SkillDto> dtoMap = dtos.stream()
+        .collect(Collectors.toMap(
+            SkillDto::getId, dto -> dto, (existing, replacement) -> replacement));
+
+    existingSkills.forEach(existing -> {
+      SkillDto dto = dtoMap.get(existing.getId());
+      if (dto.getName() != null) {
+        existing.setName(dto.getName());
+      }
+      if (dto.getIconUrl() != null) {
+        existing.setIconUrl(dto.getIconUrl());
+      }
+    });
+
+    return skillRepository.saveAll(existingSkills);
+  }
+
+  @CacheEvict(value = "skills", allEntries = true)
   @Transactional
   public void deleteById(Long id) {
     Skill skill = skillRepository.findById(id)
@@ -62,6 +97,7 @@ public class SkillService {
     skillRepository.delete(skill);
   }
 
+  @CacheEvict(value = "skills", allEntries = true)
   @Transactional
   public void deleteAll(List<Long> ids) {
     ids.forEach(this::deleteById);

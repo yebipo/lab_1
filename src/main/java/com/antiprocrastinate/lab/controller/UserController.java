@@ -88,26 +88,7 @@ public class UserController {
   @PatchMapping("/bulk")
   @Operation(summary = "Массовое обновление пользователей (частичное)")
   public List<UserDto> patchBulk(@RequestBody List<UserDto> dtos) {
-    List<User> users = dtos.stream().map(dto -> {
-      User existing = userService.findById(dto.getId());
-      if (dto.getUsername() != null) {
-        existing.setUsername(dto.getUsername());
-      }
-      if (dto.getEmail() != null) {
-        existing.setEmail(dto.getEmail());
-      }
-      if (dto.getLevel() != null) {
-        existing.setLevel(dto.getLevel());
-      }
-      if (dto.getDailyGoalMinutes() != null) {
-        existing.setDailyGoalMinutes(dto.getDailyGoalMinutes());
-      }
-      if (dto.getAvatarUrl() != null) {
-        existing.setAvatarUrl(dto.getAvatarUrl());
-      }
-      return existing;
-    }).toList();
-    return userService.saveAll(users).stream().map(userMapper::toDto).toList();
+    return userService.patchBulk(dtos).stream().map(userMapper::toDto).toList();
   }
 
   @DeleteMapping("/bulk")

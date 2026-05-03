@@ -88,20 +88,7 @@ public class WorkLogController {
   @PatchMapping("/bulk")
   @Operation(summary = "Массовое обновление логов работы (частичное)")
   public List<WorkLogDto> patchBulk(@RequestBody List<WorkLogDto> dtos) {
-    List<WorkLog> logs = dtos.stream().map(dto -> {
-      WorkLog existing = workLogService.findById(dto.getId());
-      if (dto.getDurationMinutes() != null) {
-        existing.setDurationMinutes(dto.getDurationMinutes());
-      }
-      if (dto.getComment() != null) {
-        existing.setComment(dto.getComment());
-      }
-      if (dto.getInterruptionCount() != null) {
-        existing.setInterruptionCount(dto.getInterruptionCount());
-      }
-      return existing;
-    }).toList();
-    return workLogService.saveAll(logs).stream().map(workLogMapper::toDto).toList();
+    return workLogService.patchBulk(dtos).stream().map(workLogMapper::toDto).toList();
   }
 
   @DeleteMapping("/bulk")

@@ -88,23 +88,7 @@ public class CategoryController {
   @PatchMapping("/bulk")
   @Operation(summary = "Массовое обновление категорий (частичное)")
   public List<CategoryDto> patchBulk(@RequestBody List<CategoryDto> dtos) {
-    List<Category> categories = dtos.stream().map(dto -> {
-      Category existing = categoryService.findById(dto.getId());
-      if (dto.getName() != null) {
-        existing.setName(dto.getName());
-      }
-      if (dto.getColor() != null) {
-        existing.setColor(dto.getColor());
-      }
-      if (dto.getDescription() != null) {
-        existing.setDescription(dto.getDescription());
-      }
-      if (dto.getIconUrl() != null) {
-        existing.setIconUrl(dto.getIconUrl());
-      }
-      return existing;
-    }).toList();
-    return categoryService.saveAll(categories).stream().map(categoryMapper::toDto).toList();
+    return categoryService.patchBulk(dtos).stream().map(categoryMapper::toDto).toList();
   }
 
   @DeleteMapping("/bulk")
