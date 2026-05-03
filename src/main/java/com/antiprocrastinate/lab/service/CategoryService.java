@@ -10,7 +10,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,32 +24,45 @@ public class CategoryService {
   private final CategoryRepository categoryRepository;
   private final SkillService skillService;
 
-  @Cacheable(value = "categories", key = "{#pageable.pageNumber, #pageable.pageSize}")
+  @Cacheable(value = "categories_page", key = "{#pageable.pageNumber, #pageable.pageSize}")
   @Transactional(readOnly = true)
   public Page<Category> findAll(Pageable pageable) {
     return categoryRepository.findAll(pageable);
   }
 
-  @Cacheable(value = "categories", key = "#id")
+  @Cacheable(value = "category_item", key = "#id")
   @Transactional(readOnly = true)
   public Category findById(Long id) {
     return categoryRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
   }
 
-  @CacheEvict(value = "categories", allEntries = true)
+  @Caching(
+      put = { @CachePut(value = "category_item", key = "#result.id") },
+      evict = { @CacheEvict(value = "categories_page", allEntries = true) }
+  )
   @Transactional
   public Category save(Category category) {
     return categoryRepository.save(category);
   }
 
-  @CacheEvict(value = "categories", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "category_item", allEntries = true),
+          @CacheEvict(value = "categories_page", allEntries = true)
+      }
+  )
   @Transactional
   public List<Category> saveAll(List<Category> categories) {
     return categoryRepository.saveAll(categories);
   }
 
-  @CacheEvict(value = "categories", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "category_item", allEntries = true),
+          @CacheEvict(value = "categories_page", allEntries = true)
+      }
+  )
   @Transactional
   public List<Category> patchBulk(List<CategoryDto> dtos) {
     List<Long> ids = dtos.stream().map(CategoryDto::getId).toList();
@@ -80,7 +95,12 @@ public class CategoryService {
     return categoryRepository.saveAll(existingCategories);
   }
 
-  @CacheEvict(value = "categories", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "category_item", key = "#id"),
+          @CacheEvict(value = "categories_page", allEntries = true)
+      }
+  )
   @Transactional
   public void deleteById(Long id) {
     Category category = categoryRepository.findById(id)
@@ -93,7 +113,12 @@ public class CategoryService {
     categoryRepository.delete(category);
   }
 
-  @CacheEvict(value = "categories", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "category_item", allEntries = true),
+          @CacheEvict(value = "categories_page", allEntries = true)
+      }
+  )
   @Transactional
   public void deleteAll(List<Long> ids) {
     ids.forEach(this::deleteById);

@@ -9,7 +9,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,32 +22,45 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
   private final UserRepository userRepository;
 
-  @Cacheable(value = "users", key = "{#pageable.pageNumber, #pageable.pageSize}")
+  @Cacheable(value = "users_page", key = "{#pageable.pageNumber, #pageable.pageSize}")
   @Transactional(readOnly = true)
   public Page<User> findAll(Pageable pageable) {
     return userRepository.findAll(pageable);
   }
 
-  @Cacheable(value = "users", key = "#id")
+  @Cacheable(value = "user_item", key = "#id")
   @Transactional(readOnly = true)
   public User findById(Long id) {
     return userRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
   }
 
-  @CacheEvict(value = "users", allEntries = true)
+  @Caching(
+      put = { @CachePut(value = "user_item", key = "#result.id") },
+      evict = { @CacheEvict(value = "users_page", allEntries = true) }
+  )
   @Transactional
   public User save(User user) {
     return userRepository.save(user);
   }
 
-  @CacheEvict(value = "users", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "user_item", allEntries = true),
+          @CacheEvict(value = "users_page", allEntries = true)
+      }
+  )
   @Transactional
   public List<User> saveAll(List<User> users) {
     return userRepository.saveAll(users);
   }
 
-  @CacheEvict(value = "users", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "user_item", allEntries = true),
+          @CacheEvict(value = "users_page", allEntries = true)
+      }
+  )
   @Transactional
   public List<User> patchBulk(List<UserDto> dtos) {
     List<Long> ids = dtos.stream().map(UserDto::getId).toList();
@@ -81,13 +96,23 @@ public class UserService {
     return userRepository.saveAll(existingUsers);
   }
 
-  @CacheEvict(value = "users", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "user_item", key = "#id"),
+          @CacheEvict(value = "users_page", allEntries = true)
+      }
+  )
   @Transactional
   public void deleteById(Long id) {
     userRepository.deleteById(id);
   }
 
-  @CacheEvict(value = "users", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "user_item", allEntries = true),
+          @CacheEvict(value = "users_page", allEntries = true)
+      }
+  )
   @Transactional
   public void deleteAll(List<Long> ids) {
     userRepository.deleteAllByIdInBatch(ids);

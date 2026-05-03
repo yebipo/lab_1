@@ -9,7 +9,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,32 +22,45 @@ import org.springframework.transaction.annotation.Transactional;
 public class WorkLogService {
   private final WorkLogRepository workLogRepository;
 
-  @Cacheable(value = "worklogs", key = "{#pageable.pageNumber, #pageable.pageSize}")
+  @Cacheable(value = "worklogs_page", key = "{#pageable.pageNumber, #pageable.pageSize}")
   @Transactional(readOnly = true)
   public Page<WorkLog> findAll(Pageable pageable) {
     return workLogRepository.findAll(pageable);
   }
 
-  @Cacheable(value = "worklogs", key = "#id")
+  @Cacheable(value = "worklog_item", key = "#id")
   @Transactional(readOnly = true)
   public WorkLog findById(Long id) {
     return workLogRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("WorkLog not found with id: " + id));
   }
 
-  @CacheEvict(value = "worklogs", allEntries = true)
+  @Caching(
+      put = { @CachePut(value = "worklog_item", key = "#result.id") },
+      evict = { @CacheEvict(value = "worklogs_page", allEntries = true) }
+  )
   @Transactional
   public WorkLog save(WorkLog workLog) {
     return workLogRepository.save(workLog);
   }
 
-  @CacheEvict(value = "worklogs", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "worklog_item", allEntries = true),
+          @CacheEvict(value = "worklogs_page", allEntries = true)
+      }
+  )
   @Transactional
   public List<WorkLog> saveAll(List<WorkLog> workLogs) {
     return workLogRepository.saveAll(workLogs);
   }
 
-  @CacheEvict(value = "worklogs", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "worklog_item", allEntries = true),
+          @CacheEvict(value = "worklogs_page", allEntries = true)
+      }
+  )
   @Transactional
   public List<WorkLog> patchBulk(List<WorkLogDto> dtos) {
     List<Long> ids = dtos.stream().map(WorkLogDto::getId).toList();
@@ -61,6 +76,12 @@ public class WorkLogService {
 
     existingLogs.forEach(existing -> {
       WorkLogDto dto = dtoMap.get(existing.getId());
+      if (dto.getStartTime() != null) {
+        existing.setStartTime(dto.getStartTime());
+      }
+      if (dto.getEndTime() != null) {
+        existing.setEndTime(dto.getEndTime());
+      }
       if (dto.getDurationMinutes() != null) {
         existing.setDurationMinutes(dto.getDurationMinutes());
       }
@@ -75,13 +96,23 @@ public class WorkLogService {
     return workLogRepository.saveAll(existingLogs);
   }
 
-  @CacheEvict(value = "worklogs", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "worklog_item", key = "#id"),
+          @CacheEvict(value = "worklogs_page", allEntries = true)
+      }
+  )
   @Transactional
   public void deleteById(Long id) {
     workLogRepository.deleteById(id);
   }
 
-  @CacheEvict(value = "worklogs", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "worklog_item", allEntries = true),
+          @CacheEvict(value = "worklogs_page", allEntries = true)
+      }
+  )
   @Transactional
   public void deleteAll(List<Long> ids) {
     workLogRepository.deleteAllByIdInBatch(ids);

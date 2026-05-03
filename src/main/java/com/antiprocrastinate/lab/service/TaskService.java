@@ -10,7 +10,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,32 +23,45 @@ import org.springframework.transaction.annotation.Transactional;
 public class TaskService {
   private final TaskRepository taskRepo;
 
-  @Cacheable(value = "tasks", key = "{#pageable.pageNumber, #pageable.pageSize}")
+  @Cacheable(value = "tasks_page", key = "{#pageable.pageNumber, #pageable.pageSize}")
   @Transactional(readOnly = true)
   public Page<Task> findAll(Pageable pageable) {
     return taskRepo.findAll(pageable);
   }
 
-  @Cacheable(value = "tasks", key = "#id")
+  @Cacheable(value = "task_item", key = "#id")
   @Transactional(readOnly = true)
   public Task findById(Long id) {
     return taskRepo.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + id));
   }
 
-  @CacheEvict(value = "tasks", allEntries = true)
+  @Caching(
+      put = { @CachePut(value = "task_item", key = "#result.id") },
+      evict = { @CacheEvict(value = "tasks_page", allEntries = true) }
+  )
   @Transactional
   public Task save(Task task) {
     return taskRepo.save(task);
   }
 
-  @CacheEvict(value = "tasks", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "task_item", allEntries = true),
+          @CacheEvict(value = "tasks_page", allEntries = true)
+      }
+  )
   @Transactional
   public List<Task> saveAll(List<Task> tasks) {
     return taskRepo.saveAll(tasks);
   }
 
-  @CacheEvict(value = "tasks", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "task_item", allEntries = true),
+          @CacheEvict(value = "tasks_page", allEntries = true)
+      }
+  )
   @Transactional
   public List<Task> patchBulk(List<TaskDto> dtos) {
     List<Long> ids = dtos.stream().map(TaskDto::getId).toList();
@@ -79,7 +94,12 @@ public class TaskService {
     return taskRepo.saveAll(existingTasks);
   }
 
-  @CacheEvict(value = "tasks", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "task_item", key = "#id"),
+          @CacheEvict(value = "tasks_page", allEntries = true)
+      }
+  )
   @Transactional
   public void deleteById(Long id) {
     Task task = taskRepo.findById(id)
@@ -88,13 +108,18 @@ public class TaskService {
     taskRepo.delete(task);
   }
 
-  @CacheEvict(value = "tasks", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "task_item", allEntries = true),
+          @CacheEvict(value = "tasks_page", allEntries = true)
+      }
+  )
   @Transactional
   public void deleteAll(List<Long> ids) {
     ids.forEach(this::deleteById);
   }
 
-  @Cacheable(value = "tasks",
+  @Cacheable(value = "tasks_page",
       key = "{#userId, #skillId, #pageable.pageNumber, #pageable.pageSize, #useNative}")
   @Transactional(readOnly = true)
   public Page<Task> getTasksFiltered(

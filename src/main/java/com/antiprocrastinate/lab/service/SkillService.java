@@ -11,7 +11,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,32 +25,45 @@ public class SkillService {
   private final SkillRepository skillRepository;
   private final TaskRepository taskRepository;
 
-  @Cacheable(value = "skills", key = "{#pageable.pageNumber, #pageable.pageSize}")
+  @Cacheable(value = "skills_page", key = "{#pageable.pageNumber, #pageable.pageSize}")
   @Transactional(readOnly = true)
   public Page<Skill> findAll(Pageable pageable) {
     return skillRepository.findAll(pageable);
   }
 
-  @Cacheable(value = "skills", key = "#id")
+  @Cacheable(value = "skill_item", key = "#id")
   @Transactional(readOnly = true)
   public Skill findById(Long id) {
     return skillRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Skill not found with id: " + id));
   }
 
-  @CacheEvict(value = "skills", allEntries = true)
+  @Caching(
+      put = { @CachePut(value = "skill_item", key = "#result.id") },
+      evict = { @CacheEvict(value = "skills_page", allEntries = true) }
+  )
   @Transactional
   public Skill save(Skill skill) {
     return skillRepository.save(skill);
   }
 
-  @CacheEvict(value = "skills", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "skill_item", allEntries = true),
+          @CacheEvict(value = "skills_page", allEntries = true)
+      }
+  )
   @Transactional
   public List<Skill> saveAll(List<Skill> skills) {
     return skillRepository.saveAll(skills);
   }
 
-  @CacheEvict(value = "skills", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "skill_item", allEntries = true),
+          @CacheEvict(value = "skills_page", allEntries = true)
+      }
+  )
   @Transactional
   public List<Skill> patchBulk(List<SkillDto> dtos) {
     List<Long> ids = dtos.stream().map(SkillDto::getId).toList();
@@ -75,7 +90,12 @@ public class SkillService {
     return skillRepository.saveAll(existingSkills);
   }
 
-  @CacheEvict(value = "skills", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "skill_item", key = "#id"),
+          @CacheEvict(value = "skills_page", allEntries = true)
+      }
+  )
   @Transactional
   public void deleteById(Long id) {
     Skill skill = skillRepository.findById(id)
@@ -97,7 +117,12 @@ public class SkillService {
     skillRepository.delete(skill);
   }
 
-  @CacheEvict(value = "skills", allEntries = true)
+  @Caching(
+      evict = {
+          @CacheEvict(value = "skill_item", allEntries = true),
+          @CacheEvict(value = "skills_page", allEntries = true)
+      }
+  )
   @Transactional
   public void deleteAll(List<Long> ids) {
     ids.forEach(this::deleteById);

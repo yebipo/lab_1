@@ -25,7 +25,6 @@ public class GlobalExceptionHandler {
             .build())
         .toList();
 
-    // Добавляем логирование ошибки валидации
     log.warn("Ошибка валидации данных: {}", errors);
 
     return buildResponse(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED",
@@ -34,16 +33,21 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(ResourceNotFoundException.class)
   public ResponseEntity<ErrorResponseDto> handleResourceNotFound(ResourceNotFoundException ex) {
+    // Используем параметр 'ex'
+    log.warn("Ресурс не найден: {}", ex.getMessage());
     return buildResponse(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage(), null);
   }
 
   @ExceptionHandler(BusinessOperationException.class)
-  public ResponseEntity<ErrorResponseDto> handleBusinessOperationException(BusinessOperationException ex) {
+  public ResponseEntity<ErrorResponseDto> handleBusinessOperationException(
+      BusinessOperationException ex) {
+    log.warn("Ошибка бизнес-логики: {}", ex.getMessage());
     return buildResponse(HttpStatus.BAD_REQUEST, "BAD_REQUEST", ex.getMessage(), null);
   }
 
   @ExceptionHandler(EntityNotFoundException.class)
   public ResponseEntity<ErrorResponseDto> handleEntityNotFound(EntityNotFoundException ex) {
+    log.warn("Сущность БД не найдена: {}", ex.getMessage());
     return buildResponse(HttpStatus.NOT_FOUND, "NOT_FOUND", "Сущность не найдена", null);
   }
 
@@ -54,11 +58,12 @@ public class GlobalExceptionHandler {
         "INTERNAL_ERROR", "Произошла внутренняя ошибка сервера", null);
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   @ExceptionHandler(DataIntegrityViolationException.class)
   public ResponseEntity<ErrorResponseDto> handleDataIntegrity(DataIntegrityViolationException ex) {
+    log.error("Нарушение целостности данных БД: ", ex);
     return buildResponse(HttpStatus.BAD_REQUEST, "DATA_INTEGRITY_VIOLATION",
-        "Ошибка сохранения: связанный ресурс (пользователь или навык) не существует", null);
-
+        "Нарушение целостности данных. Проверьте правильность ссылок на другие ресурсы (пользователи, задачи) и уникальность переданных значений.", null);
   }
 
   private ResponseEntity<ErrorResponseDto> buildResponse(
