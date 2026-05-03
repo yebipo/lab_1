@@ -9,12 +9,9 @@ import com.antiprocrastinate.lab.repository.TaskRepository;
 import com.antiprocrastinate.lab.repository.UserRepository;
 import com.antiprocrastinate.lab.repository.WorkLogRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,55 +25,58 @@ public class WorkLogService {
 
   private static final String WORKLOG_NOT_FOUND_MSG = "WorkLog not found: ";
 
-  private Long getCurrentUserId() {
-    String username = SecurityContextHolder.getContext().getAuthentication().getName();
+  private Long getUserIdByUsername(String username) {
     return userRepository.findByUsername(username)
-        .orElseThrow(() -> new ResourceNotFoundException("Ошибка сессии пользователя"))
+        .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"))
         .getId();
   }
 
-  private void verifyTaskOwnership(Long taskId) {
-    Long userId = getCurrentUserId();
+  private void verifyTaskOwnership(Long taskId, Long userId) {
     taskRepository.findByIdAndUserId(taskId, userId)
         .orElseThrow(() -> new AccessDeniedException(
             "Доступ к задаче запрещен или она не существует"));
   }
 
   @Transactional(readOnly = true)
-  public Page<WorkLogResponseDto> findAll(Pageable pageable) {
-    return workLogRepository.findAllByTaskUserId(getCurrentUserId(), pageable)
+  public Page<WorkLogResponseDto> findAll(String username, Pageable pageable) {
+    Long userId = getUserIdByUsername(username);
+    return workLogRepository.findAllByTaskUserId(userId, pageable)
         .map(workLogMapper::toResponseDto);
   }
 
-  @Cacheable(value = "worklog_item", key = "#id")
   @Transactional(readOnly = true)
-  public WorkLogResponseDto findById(Long id) {
-    return workLogRepository.findByIdAndTaskUserId(id, getCurrentUserId())
+  public WorkLogResponseDto findById(Long id, String username) {
+    Long userId = getUserIdByUsername(username);
+    return workLogRepository.findByIdAndTaskUserId(id, userId)
         .map(workLogMapper::toResponseDto)
         .orElseThrow(() -> new ResourceNotFoundException(WORKLOG_NOT_FOUND_MSG + id));
   }
 
   @Transactional
-  public WorkLogResponseDto create(WorkLogCreateDto dto) {
-    verifyTaskOwnership(dto.getTaskId());
-    return workLogMapper.toResponseDto(workLogRepository.save(workLogMapper.toEntity(dto)));
+  public WorkLogResponseDto create(WorkLogCreateDto dto, String username) {
+    Long userId = getUserIdByUsername(username);
+    verifyTaskOwnership(dto.getTaskId(), userId);
+
+    WorkLog workLog = workLogMapper.toEntity(dto);
+    return workLogMapper.toResponseDto(workLogRepository.save(workLog));
   }
 
-  @CacheEvict(value = "worklog_item", key = "#id")
   @Transactional
-  public WorkLogResponseDto update(Long id, WorkLogCreateDto dto) {
-    verifyTaskOwnership(dto.getTaskId());
-    WorkLog existing = workLogRepository.findByIdAndTaskUserId(id, getCurrentUserId())
+  public WorkLogResponseDto update(Long id, WorkLogCreateDto dto, String username) {
+    Long userId = getUserIdByUsername(username);
+    verifyTaskOwnership(dto.getTaskId(), userId);
+
+    WorkLog existing = workLogRepository.findByIdAndTaskUserId(id, userId)
         .orElseThrow(() -> new ResourceNotFoundException(WORKLOG_NOT_FOUND_MSG + id));
 
     workLogMapper.updateEntity(dto, existing);
     return workLogMapper.toResponseDto(workLogRepository.save(existing));
   }
 
-  @CacheEvict(value = "worklog_item", key = "#id")
   @Transactional
-  public void deleteById(Long id) {
-    WorkLog existing = workLogRepository.findByIdAndTaskUserId(id, getCurrentUserId())
+  public void deleteById(Long id, String username) {
+    Long userId = getUserIdByUsername(username);
+    WorkLog existing = workLogRepository.findByIdAndTaskUserId(id, userId)
         .orElseThrow(() -> new ResourceNotFoundException(WORKLOG_NOT_FOUND_MSG + id));
     workLogRepository.delete(existing);
   }

@@ -21,9 +21,6 @@ public class UserCreateDto {
   private String password;
 
   @NotNull @Min(1)
-  private Integer level;
-
-  @NotNull @Min(1)
   private Integer dailyGoalMinutes;
 
   private String avatarUrl;

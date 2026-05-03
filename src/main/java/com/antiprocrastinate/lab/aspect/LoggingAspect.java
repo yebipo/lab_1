@@ -17,7 +17,7 @@ public class LoggingAspect {
     Object proceed = joinPoint.proceed();
     long executionTime = System.currentTimeMillis() - start;
 
-    log.debug("Method: {} executed in {}ms",
+    log.trace("Method: {} executed in {}ms",
         joinPoint.getSignature().toShortString(), executionTime);
     return proceed;
   }

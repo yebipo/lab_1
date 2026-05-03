@@ -5,6 +5,7 @@ import com.antiprocrastinate.lab.dto.TaskCreateDto;
 import com.antiprocrastinate.lab.dto.TaskResponseDto;
 import com.antiprocrastinate.lab.service.TaskService;
 import jakarta.validation.Valid;
+import java.security.Principal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -26,13 +27,13 @@ public class TaskController {
   private final TaskService taskService;
 
   @GetMapping
-  public PageResponse<TaskResponseDto> getAll(Pageable pageable) {
-    return PageResponse.of(taskService.findAll(pageable));
+  public PageResponse<TaskResponseDto> getAll(Principal principal, Pageable pageable) {
+    return PageResponse.of(taskService.findAll(principal.getName(), pageable));
   }
 
   @GetMapping("/{id}")
-  public TaskResponseDto getById(@PathVariable Long id) {
-    return taskService.findById(id);
+  public TaskResponseDto getById(@PathVariable Long id, Principal principal) {
+    return taskService.findById(id, principal.getName());
   }
 
   @GetMapping("/search")
@@ -40,24 +41,27 @@ public class TaskController {
       @RequestParam(required = false) Long skillId,
       @RequestParam(required = false) String status,
       @RequestParam(required = false) String title,
+      Principal principal,
       Pageable pageable) {
-    return PageResponse.of(taskService.getTasksFiltered(skillId, status, title, pageable));
+    return PageResponse.of(taskService.getTasksFiltered(
+        skillId, status, title, pageable, principal.getName()));
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public TaskResponseDto create(@Valid @RequestBody TaskCreateDto dto) {
-    return taskService.create(dto);
+  public TaskResponseDto create(@Valid @RequestBody TaskCreateDto dto, Principal principal) {
+    return taskService.create(dto, principal.getName());
   }
 
   @PutMapping("/{id}")
-  public TaskResponseDto update(@PathVariable Long id, @Valid @RequestBody TaskCreateDto dto) {
-    return taskService.update(id, dto);
+  public TaskResponseDto update(
+      @PathVariable Long id, @Valid @RequestBody TaskCreateDto dto, Principal principal) {
+    return taskService.update(id, dto, principal.getName());
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void delete(@PathVariable Long id) {
-    taskService.deleteById(id);
+  public void delete(@PathVariable Long id, Principal principal) {
+    taskService.deleteById(id, principal.getName());
   }
 }
