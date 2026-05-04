@@ -15,8 +15,11 @@ public class UserCreateDto {
   @Email(message = "Некорректный email")
   private String email;
 
-  @Size(min = 6, message = "Пароль должен быть не менее 6 символов")
-  private String password;
+  // Поле для проверки при смене
+  private String oldPassword;
+
+  @Size(min = 6, message = "Новый пароль должен быть не менее 6 символов")
+  private String newPassword;
 
   private Integer dailyGoalMinutes;
 

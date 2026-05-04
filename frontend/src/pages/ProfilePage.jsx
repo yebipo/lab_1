@@ -16,7 +16,8 @@ export default function ProfilePage() {
         setForm({
             username: user.username,
             email: user.email,
-            password: '',
+            oldPassword: '',
+            newPassword: '',
             dailyGoalMinutes: user.dailyGoalMinutes,
             avatarUrl: user.avatarUrl || '',
         })
@@ -29,18 +30,30 @@ export default function ProfilePage() {
 
     const submit = async (e) => {
         e.preventDefault()
-        if (!form.password || form.password.trim() === '') {
-            setError('Пароль обязателен для редактирования профиля')
-            return
+
+        // Если заполнено поле нового пароля, проверяем условия
+        if (form.newPassword && form.newPassword.trim() !== '') {
+            if (!form.oldPassword || form.oldPassword.trim() === '') {
+                setError('Введите старый пароль для смены на новый')
+                return
+            }
+            if (form.newPassword.length < 6) {
+                setError('Новый пароль должен быть не менее 6 символов')
+                return
+            }
         }
-        if (form.password.length < 6) {
-            setError('Пароль должен быть не менее 6 символов')
-            return
-        }
+
         setSaving(true)
         setError('')
         try {
-            const dto = { ...form, dailyGoalMinutes: Number(form.dailyGoalMinutes) }
+            const dto = {
+                ...form,
+                dailyGoalMinutes: Number(form.dailyGoalMinutes),
+                // Отправляем null, если пароли не заполнены
+                oldPassword: form.oldPassword || null,
+                newPassword: form.newPassword || null
+            }
+
             await updateMe(dto)
             await refreshUser()
             setEditing(false)
@@ -65,7 +78,6 @@ export default function ProfilePage() {
             </div>
 
             <div className={styles.grid}>
-                {/* Profile card */}
                 <div className={`card ${styles.profileCard}`}>
                     <div className={styles.avatarWrap}>
                         <div className={styles.avatar}>
@@ -108,7 +120,6 @@ export default function ProfilePage() {
                     )}
                 </div>
 
-                {/* Edit form or info */}
                 <div className="card">
                     {success && (
                         <div style={{ background: 'var(--green-dim)', border: '1px solid var(--green)', color: 'var(--green)', borderRadius: 'var(--radius)', padding: '10px 14px', marginBottom: '16px', fontSize: '13px' }}>
@@ -130,24 +141,11 @@ export default function ProfilePage() {
                                     <input className="input" name="email" type="email" value={form.email} onChange={handle} required />
                                 </div>
                                 <div className="field">
-                                    <label className="label">Пароль *</label>
-                                    <input
-                                        className="input"
-                                        name="password"
-                                        type="password"
-                                        placeholder="Минимум 6 символов"
-                                        value={form.password}
-                                        onChange={handle}
-                                        required
-                                    />
-                                </div>
-                                <div className="field">
                                     <label className="label">Дневная цель (минут)</label>
                                     <input className="input" name="dailyGoalMinutes" type="number" min="1" value={form.dailyGoalMinutes} onChange={handle} required />
                                 </div>
                                 <div className="field">
                                     <label className="label">URL аватара</label>
-                                    {/* Предпросмотр аватара в форме редактирования */}
                                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                         <input
                                             className="input"
@@ -168,6 +166,31 @@ export default function ProfilePage() {
                                         )}
                                     </div>
                                 </div>
+
+                                {/* Поля паролей в конце списка */}
+                                <div className="field">
+                                    <label className="label">Старый пароль</label>
+                                    <input
+                                        className="input"
+                                        name="oldPassword"
+                                        type="password"
+                                        placeholder="Введите старый пароль"
+                                        value={form.oldPassword}
+                                        onChange={handle}
+                                    />
+                                </div>
+                                <div className="field">
+                                    <label className="label">Новый пароль</label>
+                                    <input
+                                        className="input"
+                                        name="newPassword"
+                                        type="password"
+                                        placeholder="Минимум 6 символов"
+                                        value={form.newPassword}
+                                        onChange={handle}
+                                    />
+                                </div>
+
                                 <div style={{ display: 'flex', gap: '10px' }}>
                                     <button type="button" className="btn btn-ghost" onClick={() => setEditing(false)}>Отмена</button>
                                     <button type="submit" className="btn btn-primary" disabled={saving}>
@@ -180,8 +203,6 @@ export default function ProfilePage() {
                         <>
                             <h3 className={styles.sectionTitle}>Информация</h3>
                             <div className={styles.infoTable}>
-                                {/* FIX: URL аватара убран из информационной таблицы,
-                                    он виден только в форме редактирования */}
                                 {[
                                     ['Имя пользователя', user.username],
                                     ['Email', user.email],

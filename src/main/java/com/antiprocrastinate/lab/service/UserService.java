@@ -40,8 +40,9 @@ public class UserService {
     checkUniqueness(dto.getUsername(), dto.getEmail(), null);
 
     User user = userMapper.toEntity(dto);
-    user.setPassword(passwordEncoder.encode(dto.getPassword()));
-    user.setLevel(1); // Дефолтное значение
+    // Используем newPassword для создания
+    user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+    user.setLevel(1);
     return userMapper.toResponseDto(userRepository.save(user));
   }
 
@@ -60,10 +61,29 @@ public class UserService {
   private UserResponseDto updateInternal(User existing, UserCreateDto dto) {
     checkUniqueness(dto.getUsername(), dto.getEmail(), existing);
 
+    // Запоминаем текущий пароль перед обновлением сущности маппером
+    String currentHashedPassword = existing.getPassword();
+
     userMapper.updateEntity(dto, existing);
-    if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
-      existing.setPassword(passwordEncoder.encode(dto.getPassword()));
+
+    // Логика смены пароля
+    if (dto.getNewPassword() != null && !dto.getNewPassword().isBlank()) {
+      // Если меняем пароль, старый обязателен
+      if (dto.getOldPassword() == null || dto.getOldPassword().isBlank()) {
+        throw new BusinessOperationException("Для смены пароля необходимо ввести старый пароль");
+      }
+
+      // Проверяем соответствие старого пароля
+      if (!passwordEncoder.matches(dto.getOldPassword(), currentHashedPassword)) {
+        throw new BusinessOperationException("Неверный старый пароль");
+      }
+
+      existing.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+    } else {
+      // Если пароль не меняется, гарантируем сохранение старого хэша
+      existing.setPassword(currentHashedPassword);
     }
+
     return userMapper.toResponseDto(userRepository.save(existing));
   }
 
