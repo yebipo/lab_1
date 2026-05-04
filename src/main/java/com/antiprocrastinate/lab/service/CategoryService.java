@@ -34,13 +34,11 @@ public class CategoryService {
         .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + id));
   }
 
-  @PreAuthorize("hasRole('ADMIN')")
   @Transactional
   public CategoryResponseDto create(CategoryCreateDto dto) {
     return categoryMapper.toResponseDto(categoryRepository.save(categoryMapper.toEntity(dto)));
   }
 
-  @PreAuthorize("hasRole('ADMIN')")
   @CacheEvict(value = "category_item", key = "#id")
   @Transactional
   public CategoryResponseDto update(Long id, CategoryCreateDto dto) {
@@ -50,7 +48,6 @@ public class CategoryService {
     return categoryMapper.toResponseDto(categoryRepository.save(existing));
   }
 
-  @PreAuthorize("hasRole('ADMIN')")
   @CacheEvict(value = "category_item", key = "#id")
   @Transactional
   public void deleteById(Long id) {

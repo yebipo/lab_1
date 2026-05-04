@@ -38,32 +38,27 @@ public class UserController {
     return userService.update(user.getId(), dto);
   }
 
-  @PreAuthorize("hasRole('ADMIN')")
   @GetMapping
   public PageResponse<UserResponseDto> getAll(Pageable pageable) {
     return PageResponse.of(userService.findAll(pageable));
   }
 
-  @PreAuthorize("hasRole('ADMIN')")
   @GetMapping("/{id}")
   public UserResponseDto getById(@PathVariable Long id) {
     return userService.findById(id);
   }
 
-  @PreAuthorize("hasRole('ADMIN')")
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public UserResponseDto create(@Valid @RequestBody UserCreateDto dto) {
     return userService.create(dto);
   }
 
-  @PreAuthorize("hasRole('ADMIN')")
   @PutMapping("/{id}")
   public UserResponseDto update(@PathVariable Long id, @Valid @RequestBody UserCreateDto dto) {
     return userService.update(id, dto);
   }
 
-  @PreAuthorize("hasRole('ADMIN')")
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void delete(@PathVariable Long id) {

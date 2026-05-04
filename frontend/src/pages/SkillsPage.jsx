@@ -70,7 +70,7 @@ function SkillForm({ initial, categories, onSave, onCancel }) {
                 </div>
             </div>
             <div className="field">
-                <label className="label">Категория (OneToMany)</label>
+                <label className="label">Категория</label>
                 <select className="select" name="categoryId" value={form.categoryId} onChange={handle}>
                     <option value="">— Без категории —</option>
                     {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -165,7 +165,7 @@ export default function SkillsPage() {
 
                                     {/* ManyToMany: Skill ↔ Tasks */}
                                     <div className={styles.taskRelation}>
-                                        <span className={styles.relLabel}>Задачи с этим навыком (ManyToMany):</span>
+                                        <span className={styles.relLabel}>Задачи с этим навыком:</span>
                                         {linkedTasks.length === 0
                                             ? <span className={styles.noTasks}>нет связанных задач</span>
                                             : linkedTasks.map(t => (

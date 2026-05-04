@@ -7,9 +7,7 @@ public class SkillResponseDto {
   private Long id;
   private String name;
   private String description;
-  private String iconUrl;
   private Integer level;
-  private Integer currentXp;
-  private Integer requiredXp;
   private Long categoryId;
+  private String categoryName;
 }

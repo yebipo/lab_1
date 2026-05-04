@@ -34,13 +34,11 @@ public class SkillService {
         .orElseThrow(() -> new ResourceNotFoundException("Skill not found: " + id));
   }
 
-  @PreAuthorize("hasRole('ADMIN')")
   @Transactional
   public SkillResponseDto create(SkillCreateDto dto) {
     return skillMapper.toResponseDto(skillRepository.save(skillMapper.toEntity(dto)));
   }
 
-  @PreAuthorize("hasRole('ADMIN')")
   @CacheEvict(value = "skill_item", key = "#id")
   @Transactional
   public SkillResponseDto update(Long id, SkillCreateDto dto) {
@@ -50,7 +48,6 @@ public class SkillService {
     return skillMapper.toResponseDto(skillRepository.save(existing));
   }
 
-  @PreAuthorize("hasRole('ADMIN')")
   @CacheEvict(value = "skill_item", key = "#id")
   @Transactional
   public void deleteById(Long id) {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { getAllTasks, searchTasks, createTask, updateTask, deleteTask } from '../api/taskApi.js'
 import { getAllSkills } from '../api/skillApi.js'
 import Modal from '../components/Modal.jsx'
@@ -39,7 +40,7 @@ function TaskRow({ task, skills, onEdit, onDelete, onStatusChange }) {
 
                     {skillNames.length > 0 && (
                         <div className={styles.skillTags}>
-                            <span className={styles.skillLabel}>Навыки (ManyToMany):</span>
+                            <span className={styles.skillLabel}>Навыки:</span>
                             {skillNames.map(n => (
                                 <span key={n} className={styles.skillTag}>✦ {n}</span>
                             ))}
@@ -80,8 +81,8 @@ function TaskGroup({ status, tasks, skills, onEdit, onDelete, onStatusChange }) 
             <button className={styles.groupHeader} onClick={() => setOpen(!open)}>
                 <span className={`${styles.groupArrow} ${open ? styles.groupArrowOpen : ''}`}>▸</span>
                 <span className={styles.groupTitle} style={{ color: colorMap[status] }}>
-          {s?.icon} {s?.label}
-        </span>
+                    {s?.icon} {s?.label}
+                </span>
                 <span className={styles.groupCount}>{tasks.length}</span>
             </button>
             {open && (
@@ -108,6 +109,7 @@ function TaskForm({ initial, skills, onSave, onCancel }) {
     const [form, setForm] = useState({
         title: initial?.title || '',
         description: initial?.description || '',
+        // FIX: статус доступен и при создании (убрано условие {initial &&})
         status: initial?.status || 'TODO',
         skillIds: initial?.skillIds ? [...initial.skillIds] : [],
     })
@@ -128,7 +130,8 @@ function TaskForm({ initial, skills, onSave, onCancel }) {
         setSaving(true)
         setError('')
         try {
-            await onSave({ ...form, skillIds: new Set(form.skillIds) })
+            // FIX: массив вместо Set — Jackson не умеет десериализовать JS Set
+            await onSave({ ...form, skillIds: form.skillIds })
         } catch (err) {
             setError(err.response?.data?.message || 'Ошибка сохранения')
         } finally {
@@ -147,17 +150,16 @@ function TaskForm({ initial, skills, onSave, onCancel }) {
                 <label className="label">Описание</label>
                 <textarea className="input" rows={3} value={form.description} onChange={e => setForm({...form, description: e.target.value})} style={{resize:'vertical'}} />
             </div>
-            {initial && (
-                <div className="field">
-                    <label className="label">Статус</label>
-                    <select className="select" value={form.status} onChange={e => setForm({...form, status: e.target.value})}>
-                        {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
-                    </select>
-                </div>
-            )}
+            {/* FIX: статус показывается всегда, не только при редактировании */}
+            <div className="field">
+                <label className="label">Статус</label>
+                <select className="select" value={form.status} onChange={e => setForm({...form, status: e.target.value})}>
+                    {STATUSES.map(s => <option key={s.key} value={s.key}>{s.icon} {s.label}</option>)}
+                </select>
+            </div>
             {skills.length > 0 && (
                 <div className="field">
-                    <label className="label">Навыки (ManyToMany)</label>
+                    <label className="label">Навыки</label>
                     <div className={styles.skillSelect}>
                         {skills.map(s => (
                             <label key={s.id} className={`${styles.skillCheck} ${form.skillIds.includes(s.id) ? styles.skillChecked : ''}`}>
@@ -187,8 +189,24 @@ export default function TasksPage() {
     const [tasks, setTasks] = useState([])
     const [skills, setSkills] = useState([])
     const [loading, setLoading] = useState(true)
-    const [modal, setModal] = useState(null) // null | 'create' | {task}
-    const [filter, setFilter] = useState({ title: '', skillId: '', status: '' })
+    const [modal, setModal] = useState(null)
+
+    // FIX: читаем ?status= из URL — сайдбар передаёт его при переходе по подпунктам
+    const [searchParams, setSearchParams] = useSearchParams()
+    const [filter, setFilter] = useState({
+        title: '',
+        skillId: '',
+        status: searchParams.get('status') || '',
+    })
+
+    // Синхронизируем фильтр при смене URL (клик по подпункту сайдбара)
+    useEffect(() => {
+        const urlStatus = searchParams.get('status') || ''
+        setFilter(f => {
+            if (f.status === urlStatus) return f
+            return { ...f, status: urlStatus }
+        })
+    }, [searchParams])
 
     const load = useCallback(async () => {
         setLoading(true)
@@ -214,6 +232,16 @@ export default function TasksPage() {
         return acc
     }, {})
 
+    const handleFilterChange = (newFilter) => {
+        setFilter(newFilter)
+        // Синхронизируем URL при ручном изменении через дропдаун
+        if (newFilter.status) {
+            setSearchParams({ status: newFilter.status }, { replace: true })
+        } else {
+            setSearchParams({}, { replace: true })
+        }
+    }
+
     const handleCreate = async (dto) => {
         await createTask(dto)
         setModal(null)
@@ -234,14 +262,31 @@ export default function TasksPage() {
     }
 
     const handleStatusChange = async (task, status) => {
-        await updateTask(task.id, { title: task.title, description: task.description, status, skillIds: task.skillIds })
+        await updateTask(task.id, {
+            title: task.title,
+            description: task.description,
+            status,
+            skillIds: Array.isArray(task.skillIds) ? task.skillIds : [...(task.skillIds || [])],
+        })
         load()
     }
+
+    // Если фильтр по статусу активен — показываем только нужную группу
+    const visibleStatuses = filter.status
+        ? STATUSES.filter(s => s.key === filter.status)
+        : STATUSES
 
     return (
         <div>
             <div className="page-header">
-                <h1 className="page-title">Задачи <span>/ Tasks</span></h1>
+                <h1 className="page-title">
+                    Задачи <span>/ Tasks</span>
+                    {filter.status && (
+                        <span style={{ fontSize: '14px', marginLeft: '8px', color: 'var(--text-muted)' }}>
+                            — {STATUSES.find(s => s.key === filter.status)?.label}
+                        </span>
+                    )}
+                </h1>
                 <button className="btn btn-primary" onClick={() => setModal('create')}>
                     + Новая задача
                 </button>
@@ -253,13 +298,13 @@ export default function TasksPage() {
                     className="input"
                     placeholder="🔍 Поиск по названию..."
                     value={filter.title}
-                    onChange={e => setFilter({...filter, title: e.target.value})}
+                    onChange={e => handleFilterChange({...filter, title: e.target.value})}
                     style={{ flex: 2 }}
                 />
                 <select
                     className="select"
                     value={filter.skillId}
-                    onChange={e => setFilter({...filter, skillId: e.target.value})}
+                    onChange={e => handleFilterChange({...filter, skillId: e.target.value})}
                     style={{ flex: 1 }}
                 >
                     <option value="">Все навыки</option>
@@ -268,14 +313,14 @@ export default function TasksPage() {
                 <select
                     className="select"
                     value={filter.status}
-                    onChange={e => setFilter({...filter, status: e.target.value})}
+                    onChange={e => handleFilterChange({...filter, status: e.target.value})}
                     style={{ flex: 1 }}
                 >
                     <option value="">Все статусы</option>
                     {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
                 </select>
                 {(filter.title || filter.skillId || filter.status) && (
-                    <button className="btn btn-ghost btn-sm" onClick={() => setFilter({ title: '', skillId: '', status: '' })}>
+                    <button className="btn btn-ghost btn-sm" onClick={() => handleFilterChange({ title: '', skillId: '', status: '' })}>
                         ✕ Сбросить
                     </button>
                 )}
@@ -283,7 +328,7 @@ export default function TasksPage() {
 
             {loading
                 ? <div className="spinner" />
-                : STATUSES.map(s => (
+                : visibleStatuses.map(s => (
                     <TaskGroup
                         key={s.key}
                         status={s.key}

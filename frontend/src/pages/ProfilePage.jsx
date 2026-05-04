@@ -10,6 +10,7 @@ export default function ProfilePage() {
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
     const [success, setSuccess] = useState(false)
+    const [avatarError, setAvatarError] = useState(false)
 
     const startEdit = () => {
         setForm({
@@ -24,18 +25,26 @@ export default function ProfilePage() {
         setSuccess(false)
     }
 
-    const handle = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+    const handle = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
 
     const submit = async (e) => {
         e.preventDefault()
+        if (!form.password || form.password.trim() === '') {
+            setError('Пароль обязателен для редактирования профиля')
+            return
+        }
+        if (form.password.length < 6) {
+            setError('Пароль должен быть не менее 6 символов')
+            return
+        }
         setSaving(true)
         setError('')
         try {
             const dto = { ...form, dailyGoalMinutes: Number(form.dailyGoalMinutes) }
-            if (!dto.password) delete dto.password
             await updateMe(dto)
             await refreshUser()
             setEditing(false)
+            setAvatarError(false)
             setSuccess(true)
             setTimeout(() => setSuccess(false), 3000)
         } catch (err) {
@@ -46,6 +55,8 @@ export default function ProfilePage() {
     }
 
     if (!user) return <div className="spinner" />
+
+    const showAvatar = user.avatarUrl && !avatarError
 
     return (
         <div className={styles.page}>
@@ -58,9 +69,17 @@ export default function ProfilePage() {
                 <div className={`card ${styles.profileCard}`}>
                     <div className={styles.avatarWrap}>
                         <div className={styles.avatar}>
-                            {user.avatarUrl
-                                ? <img src={user.avatarUrl} alt={user.username} />
-                                : user.username?.[0]?.toUpperCase()}
+                            {showAvatar
+                                ? (
+                                    <img
+                                        src={user.avatarUrl}
+                                        alt={user.username}
+                                        onError={() => setAvatarError(true)}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }}
+                                    />
+                                )
+                                : user.username?.[0]?.toUpperCase()
+                            }
                         </div>
                         <div className={styles.levelBadge}>Ур. {user.level ?? 1}</div>
                     </div>
@@ -76,14 +95,14 @@ export default function ProfilePage() {
                             <span className={styles.statValue}>{user.dailyGoalMinutes}</span>
                             <span className={styles.statLabel}>Мин/день</span>
                         </div>
-                        <div className={styles.statItem}>
-                            <span className={styles.statValue}>{user.id}</span>
-                            <span className={styles.statLabel}>ID</span>
-                        </div>
                     </div>
 
                     {!editing && (
-                        <button className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center', marginTop: '8px' }} onClick={startEdit}>
+                        <button
+                            className="btn btn-ghost"
+                            style={{ width: '100%', justifyContent: 'center', marginTop: '8px' }}
+                            onClick={startEdit}
+                        >
                             ✎ Редактировать профиль
                         </button>
                     )}
@@ -111,8 +130,16 @@ export default function ProfilePage() {
                                     <input className="input" name="email" type="email" value={form.email} onChange={handle} required />
                                 </div>
                                 <div className="field">
-                                    <label className="label">Новый пароль (оставьте пустым для сохранения текущего)</label>
-                                    <input className="input" name="password" type="password" placeholder="••••••••" value={form.password} onChange={handle} />
+                                    <label className="label">Пароль *</label>
+                                    <input
+                                        className="input"
+                                        name="password"
+                                        type="password"
+                                        placeholder="Минимум 6 символов"
+                                        value={form.password}
+                                        onChange={handle}
+                                        required
+                                    />
                                 </div>
                                 <div className="field">
                                     <label className="label">Дневная цель (минут)</label>
@@ -120,7 +147,26 @@ export default function ProfilePage() {
                                 </div>
                                 <div className="field">
                                     <label className="label">URL аватара</label>
-                                    <input className="input" name="avatarUrl" placeholder="https://..." value={form.avatarUrl} onChange={handle} />
+                                    {/* Предпросмотр аватара в форме редактирования */}
+                                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                        <input
+                                            className="input"
+                                            name="avatarUrl"
+                                            placeholder="https://example.com/avatar.jpg"
+                                            value={form.avatarUrl}
+                                            onChange={handle}
+                                            style={{ flex: 1 }}
+                                        />
+                                        {form.avatarUrl && (
+                                            <img
+                                                src={form.avatarUrl}
+                                                alt="preview"
+                                                style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: '50%', border: '1px solid var(--border)', flexShrink: 0 }}
+                                                onError={e => { e.target.style.display = 'none' }}
+                                                onLoad={e => { e.target.style.display = 'block' }}
+                                            />
+                                        )}
+                                    </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '10px' }}>
                                     <button type="button" className="btn btn-ghost" onClick={() => setEditing(false)}>Отмена</button>
@@ -134,13 +180,13 @@ export default function ProfilePage() {
                         <>
                             <h3 className={styles.sectionTitle}>Информация</h3>
                             <div className={styles.infoTable}>
+                                {/* FIX: URL аватара убран из информационной таблицы,
+                                    он виден только в форме редактирования */}
                                 {[
-                                    ['ID пользователя', user.id],
                                     ['Имя пользователя', user.username],
                                     ['Email', user.email],
                                     ['Уровень', user.level ?? 1],
                                     ['Дневная цель', `${user.dailyGoalMinutes} минут`],
-                                    ['URL аватара', user.avatarUrl || '—'],
                                 ].map(([k, v]) => (
                                     <div key={k} className={styles.infoRow}>
                                         <span className={styles.infoKey}>{k}</span>

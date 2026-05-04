@@ -7,7 +7,7 @@ export default function RegisterPage() {
     const { register } = useAuth()
     const navigate = useNavigate()
     const [form, setForm] = useState({
-        username: '', email: '', password: '', dailyGoalMinutes: 60, avatarUrl: ''
+        username: '', email: '', password: '',
     })
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
@@ -19,7 +19,8 @@ export default function RegisterPage() {
         setError('')
         setLoading(true)
         try {
-            await register({ ...form, dailyGoalMinutes: Number(form.dailyGoalMinutes) })
+            // dailyGoalMinutes обязателен в UserCreateDto (@NotNull) — ставим дефолт 60
+            await register({ ...form, dailyGoalMinutes: 60 })
             navigate('/tasks')
         } catch (err) {
             setError(err.response?.data?.message || 'Ошибка регистрации')
@@ -52,14 +53,6 @@ export default function RegisterPage() {
                     <div className="field">
                         <label className="label">Пароль</label>
                         <input className="input" name="password" type="password" placeholder="Минимум 6 символов" value={form.password} onChange={handle} required />
-                    </div>
-                    <div className="field">
-                        <label className="label">Дневная цель (минут)</label>
-                        <input className="input" name="dailyGoalMinutes" type="number" min="1" value={form.dailyGoalMinutes} onChange={handle} required />
-                    </div>
-                    <div className="field">
-                        <label className="label">URL аватара (необязательно)</label>
-                        <input className="input" name="avatarUrl" placeholder="https://..." value={form.avatarUrl} onChange={handle} />
                     </div>
                     <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px' }} disabled={loading}>
                         {loading ? 'Регистрация...' : 'Зарегистрироваться'}

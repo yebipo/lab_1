@@ -15,7 +15,11 @@ function CategoryForm({ initial, onSave, onCancel }) {
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
 
-    const handle = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+    // FIX: используем функциональное обновление, чтобы не было stale closure
+    const handle = (e) => {
+        const { name, value } = e.target
+        setForm(prev => ({ ...prev, [name]: value }))
+    }
 
     const submit = async (e) => {
         e.preventDefault()
@@ -41,7 +45,8 @@ function CategoryForm({ initial, onSave, onCancel }) {
                 <label className="label">Цвет *</label>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <input className="input" name="color" value={form.color} onChange={handle} required style={{ flex: 1 }} />
-                    <input type="color" value={form.color} onChange={e => setForm({...form, color: e.target.value})}
+                    <input type="color" value={form.color}
+                           onChange={e => setForm(prev => ({ ...prev, color: e.target.value }))}
                            style={{ width: 40, height: 40, border: 'none', background: 'none', cursor: 'pointer' }} />
                 </div>
             </div>
@@ -51,7 +56,25 @@ function CategoryForm({ initial, onSave, onCancel }) {
             </div>
             <div className="field">
                 <label className="label">URL иконки</label>
-                <input className="input" name="iconUrl" placeholder="https://..." value={form.iconUrl} onChange={handle} />
+                {/* FIX: добавлен предпросмотр иконки рядом с полем */}
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <input
+                        className="input"
+                        name="iconUrl"
+                        placeholder="https://example.com/icon.png"
+                        value={form.iconUrl}
+                        onChange={handle}
+                        style={{ flex: 1 }}
+                    />
+                    {form.iconUrl && (
+                        <img
+                            src={form.iconUrl}
+                            alt="preview"
+                            style={{ width: 36, height: 36, objectFit: 'contain', borderRadius: 6, border: '1px solid var(--border)' }}
+                            onError={e => { e.target.style.display = 'none' }}
+                        />
+                    )}
+                </div>
             </div>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                 <button type="button" className="btn btn-ghost" onClick={onCancel}>Отмена</button>
@@ -106,7 +129,12 @@ export default function CategoriesPage() {
         }
     }
 
-    const getSkillsForCategory = (catId) => skills.filter(s => s.categoryId === catId)
+    // FIX: добавлен запасной вариант — если backend возвращает навыки внутри категории,
+    // используем их; иначе фильтруем отдельно загруженные навыки по categoryId
+    const getSkillsForCategory = (cat) => {
+        if (cat.skills && cat.skills.length > 0) return cat.skills
+        return skills.filter(s => s.categoryId === cat.id)
+    }
 
     return (
         <div>
@@ -123,11 +151,25 @@ export default function CategoriesPage() {
                             <p style={{ color: 'var(--text-muted)', gridColumn: '1/-1' }}>Категорий нет</p>
                         )}
                         {categories.map(cat => {
-                            const catSkills = getSkillsForCategory(cat.id)
+                            const catSkills = getSkillsForCategory(cat)
                             return (
                                 <div key={cat.id} className={styles.card}>
                                     <div className={styles.cardTop}>
-                                        <div className={styles.colorDot} style={{ background: cat.color }} />
+                                        {/* FIX: отображаем иконку если есть iconUrl, иначе цветной dot */}
+                                        {cat.iconUrl
+                                            ? (
+                                                <img
+                                                    src={cat.iconUrl}
+                                                    alt={cat.name}
+                                                    style={{ width: 24, height: 24, objectFit: 'contain', borderRadius: 4 }}
+                                                    onError={e => { e.target.replaceWith(Object.assign(document.createElement('div'), {
+                                                        className: styles.colorDot,
+                                                        style: `background: ${cat.color}`
+                                                    })) }}
+                                                />
+                                            )
+                                            : <div className={styles.colorDot} style={{ background: cat.color }} />
+                                        }
                                         <span className={styles.catName}>{cat.name}</span>
                                         <div className={styles.actions}>
                                             <button className="btn btn-ghost btn-sm" onClick={() => setModal({ cat })}>✎</button>
@@ -138,14 +180,18 @@ export default function CategoriesPage() {
 
                                     {/* OneToMany: Category → Skills */}
                                     <div className={styles.relation}>
-                                        <span className={styles.relLabel}>Навыки (OneToMany):</span>
+                                        <span className={styles.relLabel}>
+                                            Навыки ({catSkills.length}):
+                                        </span>
                                         {catSkills.length === 0
                                             ? <span className={styles.noSkills}>нет навыков</span>
                                             : catSkills.map(s => (
                                                 <span key={s.id} className={styles.skillChip}>
-                            ✦ {s.name} <span className={styles.lvl}>Ур.{s.level}</span>
-                          </span>
-                                            ))}
+                                                    ✦ {s.name}
+                                                    {s.level != null && <span className={styles.lvl}>Ур.{s.level}</span>}
+                                                </span>
+                                            ))
+                                        }
                                     </div>
                                 </div>
                             )

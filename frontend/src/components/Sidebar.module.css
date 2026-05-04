@@ -149,3 +149,70 @@
     color: var(--red);
     background: var(--red-dim);
 }
+/* Добавь эти стили в конец своего Sidebar.module.css */
+
+/* Кнопка-навигация (для пункта с подпунктами) */
+.navItemBtn {
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    font-size: 14px;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+    text-align: left;
+}
+
+/*noinspection CssUnresolvedCustomProperty*/
+.navItemBtn:hover {
+    background: var(--surface-hover, rgba(255,255,255,0.06));
+    color: var(--text-primary);
+}
+
+/* Вложенный список */
+.subNav {
+    display: flex;
+    flex-direction: column;
+    margin-left: 16px;
+    margin-top: 2px;
+    border-left: 1px solid var(--border, rgba(255,255,255,0.08));
+    padding-left: 8px;
+    gap: 1px;
+}
+
+/* Подпункт */
+.subItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    font-size: 13px;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+}
+
+/*noinspection CssUnresolvedCustomProperty*/
+.subItem:hover {
+    background: var(--surface-hover, rgba(255,255,255,0.06));
+    color: var(--text-secondary);
+}
+
+/*noinspection CssUnresolvedCustomProperty*/
+.subActive {
+    color: var(--text-primary) !important;
+    background: var(--surface-active, rgba(255,255,255,0.1));
+}
+
+.subIcon {
+    font-size: 11px;
+    opacity: 0.7;
+    flex-shrink: 0;
+}

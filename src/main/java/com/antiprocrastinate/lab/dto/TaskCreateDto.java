@@ -11,5 +11,7 @@ public class TaskCreateDto {
 
   private String description;
 
+  private String status;
+
   private Set<Long> skillIds;
 }
