@@ -1,0 +1,31 @@
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 24px;
+}
+
+.btn {
+    padding: 7px 16px;
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+.btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.info {
+    font-size: 13px;
+    color: var(--text-muted);
+    min-width: 60px;
+    text-align: center;
+}

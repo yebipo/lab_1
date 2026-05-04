@@ -1,0 +1,112 @@
+.statsBar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 120px;
+}
+
+.statNum {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.statLbl {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+}
+
+.table {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.row {
+    border-bottom: 1px solid var(--border);
+    transition: background var(--transition);
+}
+.row:last-child { border-bottom: none; }
+.row:hover { background: var(--bg-hover); }
+
+.rowMain {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+    flex-wrap: wrap;
+}
+
+.timeBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 110px;
+}
+
+.duration {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.startTime {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.taskRef {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.taskName {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.comment {
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.meta {
+    min-width: 40px;
+}
+
+.interrupts {
+    font-size: 12px;
+    color: var(--red);
+    font-family: var(--font-display);
+}
+
+.rowActions {
+    display: flex;
+    gap: 4px;
+}

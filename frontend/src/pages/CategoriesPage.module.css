@@ -1,0 +1,91 @@
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    transition: border-color var(--transition);
+}
+.card:hover { border-color: var(--border-active); }
+
+.cardTop {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.colorDot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 8px currentColor;
+}
+
+.catName {
+    flex: 1;
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.actions {
+    display: flex;
+    gap: 4px;
+}
+
+.desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.relation {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.relLabel {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    width: 100%;
+    margin-bottom: 4px;
+}
+
+.noSkills {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.skillChip {
+    background: var(--accent-dim);
+    border: 1px solid rgba(240, 165, 0, 0.2);
+    color: var(--accent);
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.lvl {
+    color: var(--text-muted);
+    font-size: 11px;
+}

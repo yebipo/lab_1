@@ -1,0 +1,133 @@
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.skillCard {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    transition: border-color var(--transition);
+}
+.skillCard:hover { border-color: var(--border-active); }
+
+.skillMain {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.skillInfo { flex: 1; min-width: 0; }
+
+.skillHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+.skillName {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.skillLevel {
+    background: var(--accent-dim);
+    border: 1px solid rgba(240,165,0,0.25);
+    color: var(--accent);
+    border-radius: 20px;
+    padding: 1px 9px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font-display);
+}
+
+.catChip {
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    border-radius: 20px;
+    padding: 1px 9px;
+    font-size: 12px;
+}
+
+.skillDesc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.xpRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.xpBar {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-base);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.xpFill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+.xpText {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-display);
+    white-space: nowrap;
+}
+
+.skillActions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+/* Task relation (ManyToMany) */
+.taskRelation {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.relLabel {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    width: 100%;
+    margin-bottom: 4px;
+}
+
+.noTasks {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.taskChip {
+    background: var(--blue-dim);
+    border: 1px solid rgba(59,130,246,0.25);
+    color: var(--blue);
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 12px;
+}
