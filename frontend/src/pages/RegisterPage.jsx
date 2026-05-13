@@ -7,7 +7,7 @@ export default function RegisterPage() {
     const { register } = useAuth()
     const navigate = useNavigate()
     const [form, setForm] = useState({
-        username: '', email: '', password: '',
+        username: '', email: '', newPassword: '',
     })
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
@@ -52,7 +52,7 @@ export default function RegisterPage() {
                     </div>
                     <div className="field">
                         <label className="label">Пароль</label>
-                        <input className="input" name="password" type="password" placeholder="Минимум 6 символов" value={form.password} onChange={handle} required />
+                        <input className="input" name="newPassword" type="password" placeholder="Минимум 6 символов" value={form.newPassword} onChange={handle} required />
                     </div>
                     <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px' }} disabled={loading}>
                         {loading ? 'Регистрация...' : 'Зарегистрироваться'}
