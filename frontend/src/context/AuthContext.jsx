@@ -30,7 +30,8 @@ export function AuthProvider({ children }) {
 
     const register = async (dto) => {
         await apiRegister(dto)
-        return login(dto.username, dto.password)
+        // После регистрации заходим, используя newPassword из dto
+        return login(dto.username, dto.newPassword)
     }
 
     const logout = () => {
