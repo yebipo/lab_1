@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getAllWorkLogs, createWorkLog, updateWorkLog, deleteWorkLog } from '../api/worklogApi.js'
+import { getAllWorkLogs, createWorkLog, updateWorkLog, deleteWorkLog } from '../api/workLogApi.js'
 import { getAllTasks } from '../api/taskApi.js'
 import Modal from '../components/Modal.jsx'
 import Pagination from '../components/Pagination.jsx'
