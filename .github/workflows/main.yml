@@ -1,0 +1,42 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - run: mvn clean package
+
+  deploy:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+
+  healthcheck:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - run: sleep 60
+
+      - run: |
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" ${{ secrets.PROD_URL }}/api-docs)
+          if [ "$HTTP_STATUS" -eq 200 ]; then
+            exit 0
+          else
+            exit 1
+          fi
